@@ -13,7 +13,7 @@ import { isInternalPlugin } from '../core/internalPlugins'
 import pluginWindowManager from '../core/pluginWindowManager'
 import { registerIconProtocolForSession } from '../index'
 import proxyManager from './proxyManager'
-import devToolsShortcut from '../utils/devToolsShortcut'
+import devToolsShortcut, { getDevToolsMode } from '../utils/devToolsShortcut'
 import windowManager from './windowManager'
 
 console.log('[Plugin] mainPreload', mainPreload)
@@ -640,7 +640,7 @@ class PluginManager {
   }
 
   // 切换当前插件的开发者工具（打开/关闭）
-  public openPluginDevTools(): boolean {
+  public async openPluginDevTools(): Promise<boolean> {
     try {
       if (!this.pluginView || this.pluginView.webContents.isDestroyed()) {
         console.log('[Plugin] 没有活动的插件视图')
@@ -654,7 +654,8 @@ class PluginManager {
         console.log('[Plugin] 已关闭插件开发者工具')
       } else {
         // 如果未打开，打开开发者工具
-        this.pluginView.webContents.openDevTools({ mode: 'detach' })
+        const mode = await getDevToolsMode()
+        this.pluginView.webContents.openDevTools({ mode })
         console.log('[Plugin] 已打开插件开发者工具')
       }
       return true

@@ -572,6 +572,22 @@
         />
       </div>
     </div>
+
+    <!-- 开发者工具位置 -->
+    <div class="setting-item">
+      <div class="setting-label">
+        <span>开发者工具位置</span>
+        <span class="setting-desc">设置插件开发者工具的默认打开位置</span>
+      </div>
+      <div class="setting-control">
+        <Dropdown
+          v-model="devToolsMode"
+          :options="devToolsModeOptions"
+          style="min-width: 200px"
+          @change="handleDevToolsModeChange"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -654,6 +670,13 @@ const searchModeOptions = [
   { label: '列表模式', value: 'list' }
 ]
 
+const devToolsModeOptions = [
+  { label: '独立窗口', value: 'detach' },
+  { label: '靠右', value: 'right' },
+  { label: '靠下', value: 'bottom' },
+  { label: '独立窗口（可停靠）', value: 'undocked' }
+]
+
 const superPanelMouseButtonOptions = [
   { label: '按下鼠标中键', value: 'middle' },
   { label: '长按鼠标中键', value: 'middle-long' },
@@ -728,6 +751,9 @@ const floatingBallLetter = ref('Z')
 
 // 开机启动设置
 const launchAtLogin = ref(false)
+
+// 开发者工具位置
+const devToolsMode = ref<'right' | 'bottom' | 'undocked' | 'detach'>('detach')
 
 // 代理设置
 const proxyEnabled = ref(false)
@@ -1241,6 +1267,16 @@ async function handleLaunchAtLoginChange(): Promise<void> {
   }
 }
 
+// 处理开发者工具位置变化
+async function handleDevToolsModeChange(): Promise<void> {
+  try {
+    await saveSettings()
+    console.log('开发者工具位置已更新:', devToolsMode.value)
+  } catch (err) {
+    console.error('保存开发者工具位置失败:', err)
+  }
+}
+
 // 处理代理开关变化
 async function handleProxyEnabledChange(): Promise<void> {
   try {
@@ -1507,6 +1543,9 @@ async function loadSettings(): Promise<void> {
       windowMaterial.value = data.windowMaterial
       acrylicLightOpacity.value = data.acrylicLightOpacity ?? 78
       acrylicDarkOpacity.value = data.acrylicDarkOpacity ?? 50
+      // 开发者工具位置
+      devToolsMode.value = data.devToolsMode ?? 'detach'
+
       // 代理配置
       proxyEnabled.value = data.proxyEnabled ?? false
       proxyUrl.value = data.proxyUrl ?? ''
@@ -1578,6 +1617,7 @@ async function saveSettings(): Promise<void> {
       windowMaterial: windowMaterial.value,
       acrylicLightOpacity: acrylicLightOpacity.value,
       acrylicDarkOpacity: acrylicDarkOpacity.value,
+      devToolsMode: devToolsMode.value,
       proxyEnabled: proxyEnabled.value,
       proxyUrl: proxyUrl.value,
       pluginMarketCustom: pluginMarketCustom.value,

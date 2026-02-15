@@ -6,7 +6,7 @@ import databaseAPI from '../api/shared/database'
 import { applyWindowMaterial } from '../utils/windowUtils'
 import { GLOBAL_SCROLLBAR_CSS } from './globalStyles.js'
 import lmdbInstance from './lmdb/lmdbInstance'
-import devToolsShortcut from '../utils/devToolsShortcut'
+import devToolsShortcut, { getDevToolsMode } from '../utils/devToolsShortcut'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -344,7 +344,11 @@ class DetachedWindowManager {
             if (pluginView.webContents.isDevToolsOpened()) {
               pluginView.webContents.closeDevTools()
             } else {
-              pluginView.webContents.openDevTools({ mode: 'detach' })
+              getDevToolsMode().then((mode) => {
+                if (!pluginView.webContents.isDestroyed()) {
+                  pluginView.webContents.openDevTools({ mode })
+                }
+              })
             }
           }
           break

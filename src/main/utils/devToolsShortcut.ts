@@ -1,5 +1,20 @@
 import { globalShortcut } from 'electron'
 import { platform } from '@electron-toolkit/utils'
+import databaseAPI from '../api/shared/database'
+
+export type DevToolsMode = 'right' | 'bottom' | 'undocked' | 'detach'
+
+/**
+ * 从数据库读取开发者工具默认位置配置
+ */
+export async function getDevToolsMode(): Promise<DevToolsMode> {
+  try {
+    const data = await databaseAPI.dbGet('settings-general')
+    return (data?.devToolsMode as DevToolsMode) || 'detach'
+  } catch {
+    return 'detach'
+  }
+}
 
 /**
  * 开发者工具快捷键管理器
@@ -26,13 +41,14 @@ class DevToolsShortcutManager {
     this.currentTarget = target
 
     // 注册全局快捷键
-    const ret = globalShortcut.register(this.shortcut, () => {
+    const ret = globalShortcut.register(this.shortcut, async () => {
       if (this.currentTarget && !this.currentTarget.isDestroyed()) {
         console.log(`[DevTools] 触发开发者工具快捷键，目标: ${this.currentTarget.id}`)
         if (this.currentTarget.isDevToolsOpened()) {
           this.currentTarget.closeDevTools()
         } else {
-          this.currentTarget.openDevTools({ mode: 'detach' })
+          const mode = await getDevToolsMode()
+          this.currentTarget.openDevTools({ mode })
         }
       }
     })
