@@ -120,7 +120,7 @@ class APIManager {
         }
         return { success: false, error: '功能不可用' }
       } catch (error: unknown) {
-        console.error('打开开发者工具失败:', error)
+        console.error('[API] 打开开发者工具失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -137,7 +137,7 @@ class APIManager {
         }
         return { success: false, error: '功能不可用' }
       } catch (error: unknown) {
-        console.error('分离插件失败:', error)
+        console.error('[API] 分离插件失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -226,7 +226,7 @@ class APIManager {
       name: cmdLabel,
       param: { code: feature.code }
     }
-    console.log(`启动插件:`, launchOptions)
+    console.log(`[API] 启动插件:`, launchOptions)
 
     windowManager.refreshPreviousActiveWindow()
 
@@ -241,7 +241,7 @@ class APIManager {
    * 启动系统应用或系统设置（direct 类型指令）
    */
   private async launchDirectCommand(command: any): Promise<void> {
-    console.log('通过全局快捷键启动系统应用:', command.name, command.path)
+    console.log('[API] 通过全局快捷键启动系统应用:', command.name, command.path)
     await appsAPI.launch({
       path: command.path,
       type: 'direct',
@@ -269,7 +269,7 @@ class APIManager {
           (p: any) => p.name === pluginDescription || p.title === pluginDescription
         )
         if (!plugin) {
-          const msg = `未找到插件: ${pluginDescription}`
+          const msg = `[API] 未找到插件: ${pluginDescription}`
           console.error(msg)
           if (Notification.isSupported()) {
             new Notification({ title: 'ZTools', body: msg }).show()
@@ -279,7 +279,7 @@ class APIManager {
 
         const result = this.findCommandInPlugin(plugin, cmdName)
         if (!result) {
-          const msg = `未找到命令: ${pluginDescription}/${cmdName}`
+          const msg = `[API] 未找到命令: ${pluginDescription}/${cmdName}`
           console.error(msg)
           if (Notification.isSupported()) {
             new Notification({ title: 'ZTools', body: msg }).show()
@@ -306,7 +306,7 @@ class APIManager {
         const totalMatches = pluginMatches.length + (directCommand ? 1 : 0)
 
         if (totalMatches === 0) {
-          const msg = `未找到命令: ${cmdName}`
+          const msg = `[API] 未找到命令: ${cmdName}`
           console.error(msg)
           if (Notification.isSupported()) {
             new Notification({ title: 'ZTools', body: msg }).show()
@@ -319,7 +319,7 @@ class APIManager {
           if (directCommand) {
             matchNames.push(`系统应用「${directCommand.name}」`)
           }
-          const msg = `多个指令匹配「${cmdName}」: ${matchNames.join('、')}，请使用「插件名称/${cmdName}」格式精确指定`
+          const msg = `[API] 多个指令匹配「${cmdName}」: ${matchNames.join('、')}，请使用「插件名称/${cmdName}」格式精确指定`
           console.warn(msg)
           if (Notification.isSupported()) {
             new Notification({ title: 'ZTools', body: msg }).show()
@@ -336,7 +336,7 @@ class APIManager {
         }
       }
     } catch (error) {
-      console.error('处理全局快捷键失败:', error)
+      console.error('[API] 处理全局快捷键失败:', error)
     }
   }
 }

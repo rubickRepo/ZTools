@@ -19,7 +19,7 @@ export async function launchApp(
     // Windows
     return winLaunch(appPath, confirmDialog)
   } else {
-    console.warn(`不支持的平台: ${platform}`)
+    console.warn(`[Launcher] 不支持的平台: ${platform}`)
     throw new Error(`Unsupported platform: ${platform}`)
   }
 }

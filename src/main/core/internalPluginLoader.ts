@@ -10,7 +10,7 @@ import { INTERNAL_PLUGIN_NAMES, getInternalPluginPath } from './internalPlugins'
  * 在应用启动时调用，自动将内置插件添加到数据库
  */
 export async function loadInternalPlugins(): Promise<void> {
-  console.log('开始加载内置插件...')
+  console.log('[InternalPlugin] 开始加载内置插件...')
 
   const isDev = !app.isPackaged
   const existingPlugins = (await api.dbGet('plugins')) || []
@@ -33,7 +33,7 @@ export async function loadInternalPlugins(): Promise<void> {
       const pluginJsonPath = path.join(effectivePluginPath, 'plugin.json')
 
       if (!fsSync.existsSync(pluginJsonPath)) {
-        console.error(`内置插件 ${pluginName} 的 plugin.json 不存在:`, pluginJsonPath)
+        console.error(`[InternalPlugin] 内置插件 ${pluginName} 的 plugin.json 不存在:`, pluginJsonPath)
         continue
       }
 
@@ -56,16 +56,16 @@ export async function loadInternalPlugins(): Promise<void> {
         isDevelopment: isDev,
         main: mainPath
       }
-      console.log('加载插件', pluginInfo)
+      console.log('[InternalPlugin] 加载插件', pluginInfo)
 
       filteredPlugins.push(pluginInfo)
-      console.log(`✓ 已加载内置插件: ${pluginName}`)
+      console.log(`[InternalPlugin] 已加载内置插件: ${pluginName}`)
     } catch (error) {
-      console.error(`加载内置插件 ${pluginName} 失败:`, error)
+      console.error(`[InternalPlugin] 加载内置插件 ${pluginName} 失败:`, error)
     }
   }
 
   // 保存到数据库
   await api.dbPut('plugins', filteredPlugins)
-  console.log('内置插件加载完成')
+  console.log('[InternalPlugin] 内置插件加载完成')
 }

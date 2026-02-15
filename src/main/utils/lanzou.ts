@@ -94,7 +94,7 @@ export async function getLanzouDownloadLink(url: string): Promise<string> {
       throw new Error('$.ajax 未被调用')
     }
 
-    console.log('downloadLink', downloadLink)
+    console.log('[Lanzou] downloadLink', downloadLink)
 
     // 解析重定向
     // 使用 HEAD 请求来获取最终 URL，而不下载内容
@@ -111,7 +111,7 @@ export async function getLanzouDownloadLink(url: string): Promise<string> {
     // 返回最终 URL
     return finalResponse.request?.res?.responseUrl || downloadLink
   } catch (error) {
-    console.error('解析蓝奏云链接出错:', error)
+    console.error('[Lanzou] 解析蓝奏云链接出错:', error)
     throw error
   }
 }
@@ -216,7 +216,7 @@ export async function getLanzouFolderFileList(url: string, password?: string): P
       throw new Error('获取文件列表失败: ' + (response.data.info || '未知错误'))
     }
   } catch (error) {
-    console.error('获取文件夹列表失败:', error)
+    console.error('[Lanzou] 获取文件夹列表失败:', error)
     throw error
   }
 }
@@ -252,13 +252,13 @@ async function fetchContent(url: string): Promise<string> {
 
   // 检查反爬虫保护
   if (response.data && typeof response.data === 'string' && !response.data.includes('<body>')) {
-    console.log('触发反爬虫保护，正在解密 Cookie...')
+    console.log('[Lanzou] 触发反爬虫保护，正在解密 Cookie...')
     try {
       const targetHost = new URL(url).host
       const cookieResult = getAcwCookie(response.data, targetHost)
 
       if (cookieResult.success && cookieResult.cookieHeader) {
-        console.log('解密成功，正在使用 Cookie 重试:', cookieResult.cookieHeader)
+        console.log('[Lanzou] 解密成功，正在使用 Cookie 重试:', cookieResult.cookieHeader)
         // 更新全局 Cookie
         globalAcwCookie = cookieResult.cookieHeader
 
@@ -266,16 +266,16 @@ async function fetchContent(url: string): Promise<string> {
         // 实际上,对于这种情况,我们只需要追加计算出的 Cookie
         const currentCookie = headers['Cookie'] || ''
         headers['Cookie'] = `${currentCookie}; ${cookieResult.cookieHeader}`
-        console.log('合并后的 Cookies:', headers['Cookie'])
+        console.log('[Lanzou] 合并后的 Cookies:', headers['Cookie'])
 
         // 重试请求
         const retryResponse = await httpGet(url, { headers })
         return retryResponse.data
       } else {
-        console.error('Cookie 解密失败:', cookieResult.error)
+        console.error('[Lanzou] Cookie 解密失败:', cookieResult.error)
       }
     } catch (e) {
-      console.error('Cookie 解密过程中出错:', e)
+      console.error('[Lanzou] Cookie 解密过程中出错:', e)
     }
   }
 
@@ -440,7 +440,7 @@ function getAcwCookie(htmlContent: string, targetHost: string): CookieResult {
       }
     }
   } catch (e: any) {
-    console.log('执行错误', e)
+    console.log('[Lanzou] 执行错误', e)
     return {
       success: false,
       error: `执行错误: ${e.message}`

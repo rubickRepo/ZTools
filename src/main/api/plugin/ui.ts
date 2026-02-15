@@ -96,7 +96,7 @@ export class PluginUIAPI {
         : this.mainWindow
 
       if (!targetWindow) {
-        console.warn('无法找到目标窗口')
+        console.warn('[PluginUI] 无法找到目标窗口')
         return false
       }
 
@@ -119,7 +119,7 @@ export class PluginUIAPI {
         }
       }
 
-      console.log('设置子输入框 placeholder:', { placeholder, isFocus })
+      console.log('[PluginUI] 设置子输入框 placeholder:', { placeholder, isFocus })
 
       // 如果 isFocus 为 true，聚焦子输入框
       if (isFocus) {
@@ -128,7 +128,7 @@ export class PluginUIAPI {
 
       return true
     } catch (error: unknown) {
-      console.error('设置子输入框失败:', error)
+      console.error('[PluginUI] 设置子输入框失败:', error)
       return false
     }
   }
@@ -141,13 +141,13 @@ export class PluginUIAPI {
         : this.mainWindow
 
       if (!targetWindow) {
-        console.warn('无法找到目标窗口')
+        console.warn('[PluginUI] 无法找到目标窗口')
         return false
       }
 
       // 发送事件到目标窗口渲染进程，隐藏子输入框
       targetWindow.webContents.send('update-sub-input-visible', false)
-      console.log('隐藏子输入框')
+      console.log('[PluginUI] 隐藏子输入框')
 
       // 如果插件在主窗口，更新 pluginManager 的状态
       if (targetWindow === this.mainWindow && event) {
@@ -159,7 +159,7 @@ export class PluginUIAPI {
 
       return true
     } catch (error: unknown) {
-      console.error('隐藏子输入框失败:', error)
+      console.error('[PluginUI] 隐藏子输入框失败:', error)
       return false
     }
   }
@@ -202,13 +202,13 @@ export class PluginUIAPI {
         : this.mainWindow
 
       if (!targetWindow) {
-        console.warn('无法找到目标窗口')
+        console.warn('[PluginUI] 无法找到目标窗口')
         return false
       }
 
       // 发送事件到目标窗口渲染进程，设置输入框的值
       targetWindow.webContents.send('set-sub-input-value', text)
-      console.log('设置子输入框值:', text)
+      console.log('[PluginUI] 设置子输入框值:', text)
 
       // 触发插件的 onChange 回调
       this.notifySubInputChange(text, event)
@@ -218,7 +218,7 @@ export class PluginUIAPI {
 
       return true
     } catch (error: unknown) {
-      console.error('设置子输入框值失败:', error)
+      console.error('[PluginUI] 设置子输入框值失败:', error)
       return false
     }
   }
@@ -231,20 +231,20 @@ export class PluginUIAPI {
         : this.mainWindow
 
       if (!targetWindow) {
-        console.warn('无法找到目标窗口')
+        console.warn('[PluginUI] 无法找到目标窗口')
         return false
       }
 
       targetWindow.webContents.focus()
-      console.log('目标窗口获取焦点')
+      console.log('[PluginUI] 目标窗口获取焦点')
 
       // 发送事件到目标窗口渲染进程，聚焦输入框
       targetWindow.webContents.send('focus-sub-input')
-      console.log('请求聚焦子输入框')
+      console.log('[PluginUI] 请求聚焦子输入框')
 
       return true
     } catch (error: unknown) {
-      console.error('聚焦子输入框失败:', error)
+      console.error('[PluginUI] 聚焦子输入框失败:', error)
       return false
     }
   }
@@ -255,21 +255,21 @@ export class PluginUIAPI {
       if (event) {
         // 直接让调用者（插件 webContents）获得焦点
         event.sender.focus()
-        console.log('插件应用获取焦点（分离窗口）')
+        console.log('[PluginUI] 插件应用获取焦点（分离窗口）')
         return true
       } else {
         const currentPluginView = this.pluginManager?.getCurrentPluginView()
         if (currentPluginView) {
           currentPluginView.webContents.focus()
-          console.log('插件应用获取焦点（主窗口）')
+          console.log('[PluginUI] 插件应用获取焦点（主窗口）')
           return true
         } else {
-          console.warn('没有活动的插件,无法获取焦点')
+          console.warn('[PluginUI] 没有活动的插件,无法获取焦点')
           return false
         }
       }
     } catch (error: unknown) {
-      console.error('插件获取焦点失败:', error)
+      console.error('[PluginUI] 插件获取焦点失败:', error)
       return false
     }
   }
@@ -281,7 +281,7 @@ export class PluginUIAPI {
         : this.mainWindow
 
       if (!targetWindow) {
-        console.warn('无法找到目标窗口')
+        console.warn('[PluginUI] 无法找到目标窗口')
         return false
       }
 
@@ -290,7 +290,7 @@ export class PluginUIAPI {
 
       return true
     } catch (error: unknown) {
-      console.error('选中子输入框失败:', error)
+      console.error('[PluginUI] 选中子输入框失败:', error)
       return false
     }
   }

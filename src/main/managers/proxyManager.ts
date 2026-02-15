@@ -47,7 +47,7 @@ class ProxyManager {
         mode: 'system' // 使用系统代理
       })
       if (name) {
-        console.log(`${name} 已切换到系统代理`)
+        console.log(`[Proxy] ${name} 已切换到系统代理`)
       }
       return
     }
@@ -68,8 +68,8 @@ class ProxyManager {
     })
 
     if (name) {
-      console.log(`${name} 已应用自定义代理: ${this.currentConfig.proxyRules}`)
-      console.log(`绕过规则: ${bypassRules}`)
+      console.log(`[Proxy] ${name} 已应用自定义代理: ${this.currentConfig.proxyRules}`)
+      console.log(`[Proxy] 绕过规则: ${bypassRules}`)
     }
   }
 
@@ -79,9 +79,9 @@ class ProxyManager {
   public async applyProxyToDefaultSession(): Promise<void> {
     // 只有在启用自定义代理时才清理缓存
     if (this.currentConfig.enabled && this.currentConfig.proxyRules) {
-      console.log('清理 HTTP 缓存...')
+      console.log('[Proxy] 清理 HTTP 缓存...')
       await session.defaultSession.clearCache()
-      console.log('HTTP 缓存已清理')
+      console.log('[Proxy] HTTP 缓存已清理')
     }
 
     // 应用代理
@@ -93,20 +93,20 @@ class ProxyManager {
       const externalProxy = await session.defaultSession.resolveProxy(
         'https://ztools-center.oss-cn-beijing.aliyuncs.com'
       )
-      console.log('外部地址代理解析:', externalProxy)
+      console.log('[Proxy] 外部地址代理解析:', externalProxy)
 
       // 测试本地地址（应该不走代理）
       const localhostProxy = await session.defaultSession.resolveProxy('http://localhost:5174')
-      console.log('localhost:5174 代理解析:', localhostProxy)
+      console.log('[Proxy] localhost:5174 代理解析:', localhostProxy)
 
       const loopbackProxy = await session.defaultSession.resolveProxy('http://127.0.0.1:5174')
-      console.log('127.0.0.1:5174 代理解析:', loopbackProxy)
+      console.log('[Proxy] 127.0.0.1:5174 代理解析:', loopbackProxy)
     } else {
       // 测试系统代理是否生效
       const externalProxy = await session.defaultSession.resolveProxy(
         'https://ztools-center.oss-cn-beijing.aliyuncs.com'
       )
-      console.log('使用系统代理，外部地址代理解析:', externalProxy)
+      console.log('[Proxy] 使用系统代理，外部地址代理解析:', externalProxy)
     }
   }
 
@@ -136,7 +136,7 @@ class ProxyManager {
       // 其他情况返回原始 URL
       return url
     } catch (error) {
-      console.warn('解析代理 URL 失败，使用原始格式:', error)
+      console.warn('[Proxy] 解析代理 URL 失败，使用原始格式:', error)
       return url
     }
   }

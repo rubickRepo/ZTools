@@ -296,7 +296,7 @@ async function getIconFile(appPath: string): Promise<string> {
 
 export async function scanApplications(): Promise<Command[]> {
   try {
-    console.time('扫描应用')
+    console.time('[Scanner] 扫描应用')
 
     // 只扫描常用应用目录
     const searchPaths = [
@@ -322,7 +322,7 @@ export async function scanApplications(): Promise<Command[]> {
       }
     }
 
-    console.log(`找到 ${allAppPaths.length} 个应用`)
+    console.log(`[Scanner] 找到 ${allAppPaths.length} 个应用`)
 
     // 创建任务数组,使用并发控制
     const tasks = allAppPaths.map((appPath) => async () => {
@@ -358,12 +358,12 @@ export async function scanApplications(): Promise<Command[]> {
     // 限制并发数为 50
     const apps = await pLimit(tasks, 50)
 
-    console.timeEnd('扫描应用')
-    console.log(`成功加载 ${apps.length} 个应用`)
+    console.timeEnd('[Scanner] 扫描应用')
+    console.log(`[Scanner] 成功加载 ${apps.length} 个应用`)
 
     return apps
   } catch (error) {
-    console.error('扫描应用失败:', error)
+    console.error('[Scanner] 扫描应用失败:', error)
     return []
   }
 }

@@ -51,31 +51,31 @@ export class SettingsAPI {
   private async loadAndApplySettings(): Promise<void> {
     try {
       const data = await databaseAPI.dbGet('settings-general')
-      console.log('加载到的设置:', data)
+      console.log('[Settings] 加载到的设置:', data)
       if (data) {
         // 应用透明度设置
         if (data.opacity !== undefined && this.mainWindow) {
           const clampedOpacity = Math.max(0.3, Math.min(1, data.opacity))
           this.mainWindow.setOpacity(clampedOpacity)
-          console.log('启动时应用透明度设置:', data.opacity)
+          console.log('[Settings] 启动时应用透明度设置:', data.opacity)
         }
         // 应用快捷键设置
         if (data.hotkey) {
           const success = updateShortcut(data.hotkey)
-          console.log('启动时应用快捷键设置:', data.hotkey, success ? '成功' : '失败')
+          console.log('[Settings] 启动时应用快捷键设置:', data.hotkey, success ? '成功' : '失败')
         }
         // 应用托盘图标显示设置（默认显示）
         windowManager.setTrayIconVisible(data.showTrayIcon ?? true)
-        console.log('启动时应用托盘图标显示设置:', data.showTrayIcon ?? true)
+        console.log('[Settings] 启动时应用托盘图标显示设置:', data.showTrayIcon ?? true)
         // 应用主题设置
         if (data.theme) {
           this.setTheme(data.theme)
-          console.log('启动时应用主题设置:', data.theme)
+          console.log('[Settings] 启动时应用主题设置:', data.theme)
         }
         // 应用自动返回搜索设置
         if (data.autoBackToSearch) {
           await windowManager.updateAutoBackToSearch(data.autoBackToSearch)
-          console.log('启动时应用自动返回搜索设置:', data.autoBackToSearch)
+          console.log('[Settings] 启动时应用自动返回搜索设置:', data.autoBackToSearch)
         }
         // 应用代理配置
         if (data.proxyEnabled !== undefined && data.proxyUrl !== undefined) {
@@ -85,12 +85,12 @@ export class SettingsAPI {
           })
           // 应用全局代理
           await proxyManager.applyProxyToDefaultSession()
-          console.log('启动时应用代理配置:', { enabled: data.proxyEnabled, url: data.proxyUrl })
+          console.log('[Settings] 启动时应用代理配置:', { enabled: data.proxyEnabled, url: data.proxyUrl })
         }
         // 应用窗口默认高度设置
         if (data.windowDefaultHeight !== undefined) {
           this.pluginManager.setPluginDefaultHeight(data.windowDefaultHeight)
-          console.log('启动时应用插件默认高度设置:', data.windowDefaultHeight)
+          console.log('[Settings] 启动时应用插件默认高度设置:', data.windowDefaultHeight)
         }
       }
 
@@ -100,7 +100,7 @@ export class SettingsAPI {
       // 加载并注册全局快捷键
       await this.loadAndRegisterGlobalShortcuts()
     } catch (error) {
-      console.error('加载设置失败:', error)
+      console.error('[Settings] 加载设置失败:', error)
     }
   }
 
@@ -129,14 +129,14 @@ export class SettingsAPI {
         }
       }
     } catch (error) {
-      console.error('加载全局快捷键失败:', error)
+      console.error('[Settings] 加载全局快捷键失败:', error)
     }
   }
 
   // 设置主题
   private setTheme(theme: string): void {
     nativeTheme.themeSource = theme as 'system' | 'light' | 'dark'
-    console.log('设置主题:', theme)
+    console.log('[Settings] 设置主题:', theme)
   }
 
   // 设置开机启动
@@ -145,7 +145,7 @@ export class SettingsAPI {
       openAtLogin: enable,
       openAsHidden: false
     })
-    console.log('设置开机启动:', enable)
+    console.log('[Settings] 设置开机启动:', enable)
   }
 
   // 获取开机启动状态
@@ -164,7 +164,7 @@ export class SettingsAPI {
         return { success: false, error: '快捷键已被占用' }
       }
     } catch (error: unknown) {
-      console.error('更新快捷键失败:', error)
+      console.error('[Settings] 更新快捷键失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -192,7 +192,7 @@ export class SettingsAPI {
       console.log(`成功注册全局快捷键: ${shortcut} -> ${target}`)
       return { success: true }
     } catch (error: unknown) {
-      console.error('注册全局快捷键失败:', error)
+      console.error('[Settings] 注册全局快捷键失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -204,7 +204,7 @@ export class SettingsAPI {
       console.log(`成功注销全局快捷键: ${shortcut}`)
       return { success: true }
     } catch (error: unknown) {
-      console.error('注销全局快捷键失败:', error)
+      console.error('[Settings] 注销全局快捷键失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -249,7 +249,7 @@ export class SettingsAPI {
               if (settingWebContents) {
                 settingWebContents.send('hotkey-recorded', shortcut)
               } else {
-                console.warn('设置插件未找到，无法发送快捷键录制事件')
+                console.warn('[Settings] 设置插件未找到，无法发送快捷键录制事件')
               }
             }
 
@@ -271,7 +271,7 @@ export class SettingsAPI {
       console.log(`开始快捷键录制，已注册 ${this.recordingShortcuts.length} 个临时快捷键`)
       return { success: true }
     } catch (error: unknown) {
-      console.error('开始快捷键录制失败:', error)
+      console.error('[Settings] 开始快捷键录制失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -299,14 +299,14 @@ export class SettingsAPI {
   }): Promise<{ success: boolean; error?: string }> {
     try {
       proxyManager.setProxyConfig(config)
-      console.log('代理配置已更新:', config)
+      console.log('[Settings] 代理配置已更新:', config)
 
       // 应用全局代理配置
       await proxyManager.applyProxyToDefaultSession()
 
       return { success: true }
     } catch (error: unknown) {
-      console.error('设置代理配置失败:', error)
+      console.error('[Settings] 设置代理配置失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -315,10 +315,10 @@ export class SettingsAPI {
   public setWindowDefaultHeight(height: number): { success: boolean; error?: string } {
     try {
       this.pluginManager.setPluginDefaultHeight(height)
-      console.log('插件默认高度已更新:', height)
+      console.log('[Settings] 插件默认高度已更新:', height)
       return { success: true }
     } catch (error: unknown) {
-      console.error('设置插件默认高度失败:', error)
+      console.error('[Settings] 设置插件默认高度失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }

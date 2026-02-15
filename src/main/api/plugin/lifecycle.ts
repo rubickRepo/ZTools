@@ -22,15 +22,15 @@ export class PluginLifecycleAPI {
   private setupIPC(): void {
     // 插件进入事件
     ipcMain.handle('onPluginEnter', () => {
-      console.log('收到插件进入事件:', this.launchParam)
+      console.log('[PluginLifecycle] 收到插件进入事件:', this.launchParam)
       return this.launchParam
     })
 
     // 退出插件
     ipcMain.handle('out-plugin', (event, isKill: boolean = false) => {
-      console.log('out-plugin', isKill)
+      console.log('[PluginLifecycle] out-plugin', isKill)
       const pluginInfo = this.pluginManager.getPluginInfoByWebContents(event.sender)
-      console.log('pluginInfo', pluginInfo)
+      console.log('[PluginLifecycle] pluginInfo', pluginInfo)
       if (!pluginInfo) {
         return false
       }

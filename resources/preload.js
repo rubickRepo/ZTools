@@ -16,6 +16,7 @@ const pluginDetachCallbacks = []
 const mainPushCallbacks = []
 const hotkeyRecordedCallbacks = []
 const windowMaterialChangeCallbacks = []
+const logEntriesCallbacks = []
 
 // 获取操作系统类型
 const osType = electron.ipcRenderer.sendSync('get-os-type')
@@ -606,7 +607,23 @@ window.ztools = {
     setFloatingBallEnabled: async (enabled) =>
       await electron.ipcRenderer.invoke('floating-ball:set-enabled', enabled),
     getFloatingBallEnabled: async () =>
-      await electron.ipcRenderer.invoke('floating-ball:get-enabled')
+      await electron.ipcRenderer.invoke('floating-ball:get-enabled'),
+
+    // ==================== 调试日志 API ====================
+    logEnable: async () => await electron.ipcRenderer.invoke('internal:log-enable'),
+    logDisable: async () => await electron.ipcRenderer.invoke('internal:log-disable'),
+    logGetBuffer: async () => await electron.ipcRenderer.invoke('internal:log-get-buffer'),
+    logIsEnabled: async () => await electron.ipcRenderer.invoke('internal:log-is-enabled'),
+    logSubscribe: async () => await electron.ipcRenderer.invoke('internal:log-subscribe'),
+    onLogEntries: (callback) => {
+      if (callback && typeof callback === 'function') {
+        logEntriesCallbacks.push(callback)
+      }
+    },
+    offLogEntries: (callback) => {
+      const index = logEntriesCallbacks.indexOf(callback)
+      if (index > -1) logEntriesCallbacks.splice(index, 1)
+    }
   }
 }
 
@@ -730,4 +747,9 @@ electron.ipcRenderer.on('get-plugin-mode', (event, { featureCode, callId }) => {
 // 监听主进程发送的窗口材质更新事件
 electron.ipcRenderer.on('update-window-material', (event, material) => {
   windowMaterialChangeCallbacks.forEach((cb) => cb(material))
+})
+
+// 监听主进程推送的调试日志
+electron.ipcRenderer.on('log-entries', (event, entries) => {
+  logEntriesCallbacks.forEach((cb) => cb(entries))
 })

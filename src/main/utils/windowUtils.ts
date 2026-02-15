@@ -20,7 +20,7 @@ export function isWindows11(): boolean {
     // Windows 11 的版本号是 10.0.22000 或更高
     return major === 10 && minor === 0 && build >= 22000
   } catch (error) {
-    console.error('检测 Windows 版本失败:', error)
+    console.error('[WindowUtils] 检测 Windows 版本失败:', error)
     return false
   }
 }
@@ -56,7 +56,7 @@ export function applyWindowMaterial(
         win.setBackgroundMaterial('mica')
         // console.log(`✅ 窗口 ${win.id} Mica 材质已启用`)
       } catch (error) {
-        console.error(`❌ 窗口 ${win.id} 设置 Mica 失败:`, error)
+        console.error(`[WindowUtils] 窗口 ${win.id} 设置 Mica 失败:`, error)
         win.setBackgroundColor('#f4f4f4')
       }
       break
@@ -68,7 +68,7 @@ export function applyWindowMaterial(
         win.setBackgroundMaterial('acrylic')
         // console.log(`✅ 窗口 ${win.id} Acrylic 材质已启用`)
       } catch (error) {
-        console.error(`❌ 窗口 ${win.id} 设置 Acrylic 失败:`, error)
+        console.error(`[WindowUtils] 窗口 ${win.id} 设置 Acrylic 失败:`, error)
         win.setBackgroundColor('#f4f4f4')
       }
       break
@@ -79,7 +79,7 @@ export function applyWindowMaterial(
         win.setBackgroundColor('#f4f4f4')
         // console.log(`✅ 窗口 ${win.id} 已禁用窗口材质`)
       } catch (error) {
-        console.error(`❌ 窗口 ${win.id} 设置背景失败:`, error)
+        console.error(`[WindowUtils] 窗口 ${win.id} 设置背景失败:`, error)
       }
       break
   }

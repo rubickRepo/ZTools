@@ -1,4 +1,5 @@
 import { IpcMainInvokeEvent, ipcMain } from 'electron'
+import logCollector from '../../core/logCollector.js'
 import detachedWindowManager from '../../core/detachedWindowManager.js'
 import superPanelManager from '../../core/superPanelManager.js'
 import aiModelsAPI from '../renderer/aiModels.js'
@@ -74,7 +75,7 @@ export class InternalPluginAPI {
       if (!requireInternalPlugin(this.pluginManager, event)) {
         throw new PermissionDeniedError('internal:launch')
       }
-      console.log('启动应用', options)
+      console.log('[Internal] 启动应用', options)
       return await (commandsAPI as any).launch(options)
     })
 
@@ -583,6 +584,45 @@ export class InternalPluginAPI {
         return await handler(event, imagePath)
       }
       throw new Error('analyze-image handler not found')
+    })
+
+    // ==================== 调试日志 API ====================
+    ipcMain.handle('internal:log-enable', async (event) => {
+      if (!requireInternalPlugin(this.pluginManager, event)) {
+        throw new PermissionDeniedError('internal:log-enable')
+      }
+      logCollector.enable(event.sender)
+      return { success: true }
+    })
+
+    ipcMain.handle('internal:log-disable', async (event) => {
+      if (!requireInternalPlugin(this.pluginManager, event)) {
+        throw new PermissionDeniedError('internal:log-disable')
+      }
+      logCollector.disable(event.sender)
+      return { success: true }
+    })
+
+    ipcMain.handle('internal:log-get-buffer', async (event) => {
+      if (!requireInternalPlugin(this.pluginManager, event)) {
+        throw new PermissionDeniedError('internal:log-get-buffer')
+      }
+      return logCollector.getBufferedLogs()
+    })
+
+    ipcMain.handle('internal:log-is-enabled', async (event) => {
+      if (!requireInternalPlugin(this.pluginManager, event)) {
+        throw new PermissionDeniedError('internal:log-is-enabled')
+      }
+      return logCollector.isEnabled()
+    })
+
+    ipcMain.handle('internal:log-subscribe', async (event) => {
+      if (!requireInternalPlugin(this.pluginManager, event)) {
+        throw new PermissionDeniedError('internal:log-subscribe')
+      }
+      logCollector.addSubscriber(event.sender)
+      return { success: true }
     })
   }
 }

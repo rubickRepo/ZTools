@@ -414,7 +414,7 @@ export class SyncEngine {
 
     // 过滤出需要下载的文档（云端修改时间 > 本地记录，且未在上传阶段处理）
     const lastSyncTime = await this.getLastSyncTime()
-    console.log('lastSyncTime', lastSyncTime)
+    console.log('[Sync] lastSyncTime', lastSyncTime)
     const remoteDocIds = remoteFiles
       .filter((file) => file.lastModified > lastSyncTime && !processedDocIds.has(file.docId))
       .map((file) => file.docId)
@@ -661,7 +661,7 @@ export class SyncEngine {
       const existingDoc = mainDb.get(docId)
 
       if (!existingDoc && !createIfNotExists) {
-        console.warn(`updateDocSyncStatus: 文档不存在 ${docId}`)
+        console.warn(`[Sync] updateDocSyncStatus: 文档不存在 ${docId}`)
         return
       }
 

@@ -60,7 +60,7 @@ class WindowManager {
    */
   public updateFocusTarget(target: 'mainWindow' | 'plugin'): void {
     this.lastFocusTarget = target
-    console.log('焦点目标已更新:', target)
+    console.log('[Window] 焦点目标已更新:', target)
   }
 
   /**
@@ -172,25 +172,24 @@ class WindowManager {
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
       this.mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
     } else {
-      console.log('生产模式下加载文件:', path.join(__dirname, '../renderer/index.html'))
+      console.log('[Window] 生产模式下加载文件:', path.join(__dirname, '../renderer/index.html'))
       this.mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
     }
 
     // 等待页面加载完成后再处理错误
     this.mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
-      console.error('页面加载失败:', errorCode, errorDescription)
+      console.error('[Window] 页面加载失败:', errorCode, errorDescription)
     })
 
     this.mainWindow.webContents.on('did-finish-load', () => {
-      console.log('页面加载成功!')
+      console.log('[Window] 页面加载成功!')
     })
 
     // 监听主窗口 webContents 的焦点事件
     this.mainWindow.webContents.on('focus', () => {
       // 只在非恢复焦点状态时才更新 lastFocusTarget，避免显示窗口流程中被意外覆盖
       if (!this.isRestoringFocus) {
-        this.lastFocusTarget = 'mainWindow'
-        console.log('主窗口 webContents 获得焦点')
+        this.updateFocusTarget('mainWindow')
       }
     })
 
@@ -231,7 +230,7 @@ class WindowManager {
         // 如果刚刚（100ms 内）触发过插件 ESC，则不再执行 mainWindow.hide，
         // 避免快速连续操作导致窗口被错误隐藏
         if (pluginManager.shouldSuppressMainHide()) {
-          console.log('检测到短时间内插件 ESC，跳过 mainWindow.hide')
+          console.log('[Window] 检测到短时间内插件 ESC，跳过 mainWindow.hide')
           return
         }
 
@@ -370,10 +369,8 @@ class WindowManager {
   private recordFocusState(): void {
     // 如果没有插件在运行,焦点一定在主窗口
     if (pluginManager.getCurrentPluginPath() === null) {
-      this.lastFocusTarget = 'mainWindow'
+      this.updateFocusTarget('mainWindow')
     }
-    // 如果有插件在运行,保持当前的 lastFocusTarget 值（由事件监听器维护）
-    console.log('记录焦点状态:', this.lastFocusTarget)
   }
 
   /**
@@ -384,13 +381,11 @@ class WindowManager {
 
     const isFocused = this.mainWindow.isFocused()
     const isVisible = this.mainWindow.isVisible()
-    console.log(`切换窗口状态 - 聚焦: ${isFocused}, 可见: ${isVisible}`)
 
     // 判断窗口是否聚焦显示
     // 修复：同时检查聚焦和可见状态，避免alert弹窗后判断错误
     if (isFocused && isVisible) {
       // 窗口已显示且聚焦 → 隐藏
-      console.log('隐藏窗口')
 
       // 记录当前的焦点状态（在隐藏之前）
       this.recordFocusState()
@@ -400,7 +395,6 @@ class WindowManager {
       this.restorePreviousWindow()
     } else {
       // 窗口已隐藏或失焦 → 显示并强制激活
-      console.log('显示窗口')
       this.showWindow()
     }
   }
@@ -495,7 +489,7 @@ class WindowManager {
    * 隐藏窗口
    */
   public hideWindow(_restoreFocus: boolean = true): void {
-    console.log('隐藏窗口', _restoreFocus)
+    console.log('[Window] 隐藏窗口', _restoreFocus)
 
     // 记录当前的焦点状态（在隐藏之前）
     this.recordFocusState()
@@ -548,7 +542,7 @@ class WindowManager {
     if (this.autoBackToSearchTimer) {
       clearTimeout(this.autoBackToSearchTimer)
       this.autoBackToSearchTimer = null
-      console.log('自动返回搜索定时器已取消')
+      console.log('[Window] 自动返回搜索定时器已取消')
     }
   }
 
@@ -561,7 +555,7 @@ class WindowManager {
     pluginManager.hidePluginView()
     // 通知渲染进程返回搜索并切换模式
     this.notifyBackToSearch()
-    console.log('已触发自动返回搜索')
+    console.log('[Window] 已触发自动返回搜索')
   }
 
   /**
@@ -592,7 +586,7 @@ class WindowManager {
    */
   public async updateAutoBackToSearch(config: string): Promise<void> {
     this.autoBackToSearchConfig = config
-    console.log('更新自动返回搜索配置:', config)
+    console.log('[Window] 更新自动返回搜索配置:', config)
   }
 
   /**
@@ -617,7 +611,7 @@ class WindowManager {
    */
   public async restorePreviousWindow(): Promise<boolean> {
     if (!this.previousActiveWindow) {
-      console.log('没有记录的前一个激活窗口')
+      console.log('[Window] 没有记录的前一个激活窗口')
       return false
     }
 
@@ -639,7 +633,7 @@ class WindowManager {
         return false
       }
     } catch (error) {
-      console.log('恢复激活窗口时出现异常:', error)
+      console.log('[Window] 恢复激活窗口时出现异常:', error)
       return false
     }
   }
@@ -744,11 +738,11 @@ class WindowManager {
       const savedMaterial = settings?.windowMaterial as WindowMaterial | undefined
       const material = savedMaterial || getDefaultWindowMaterial()
 
-      console.log('从配置读取窗口材质:', material)
+      console.log('[Window] 从配置读取窗口材质:', material)
 
       // 如果数据库中没有保存材质配置，保存默认值
       if (!savedMaterial) {
-        console.log('数据库中没有窗口材质配置，保存默认值:', material)
+        console.log('[Window] 数据库中没有窗口材质配置，保存默认值:', material)
         const updatedSettings = {
           ...(settings || {}),
           windowMaterial: material
@@ -758,7 +752,7 @@ class WindowManager {
 
       this.applyMaterial(material)
     } catch (error) {
-      console.error('读取窗口材质配置失败，使用默认值:', error)
+      console.error('[Window] 读取窗口材质配置失败，使用默认值:', error)
       const defaultMaterial = getDefaultWindowMaterial()
       this.applyMaterial(defaultMaterial)
     }
@@ -786,7 +780,7 @@ class WindowManager {
       const settings = await databaseAPI.dbGet('settings-general')
       return (settings?.windowMaterial as WindowMaterial) || getDefaultWindowMaterial()
     } catch (error) {
-      console.error('获取窗口材质失败:', error)
+      console.error('[Window] 获取窗口材质失败:', error)
       return getDefaultWindowMaterial()
     }
   }
@@ -799,7 +793,7 @@ class WindowManager {
 
     // 如果当前有插件在显示，先隐藏插件
     if (pluginManager.getCurrentPluginPath() !== null) {
-      console.log('检测到插件正在显示，先隐藏插件')
+      console.log('[Window] 检测到插件正在显示，先隐藏插件')
       pluginManager.hidePluginView()
       // 通知渲染进程返回搜索页面
       this.notifyBackToSearch()
@@ -809,7 +803,7 @@ class WindowManager {
     const currentWindow = clipboardManager.getCurrentWindow()
     if (currentWindow) {
       this.previousActiveWindow = currentWindow
-      console.log('记录打开前的激活窗口:', currentWindow.app)
+      console.log('[Window] 记录打开前的激活窗口:', currentWindow.app)
 
       // 发送窗口信息到渲染进程
       this.mainWindow.webContents.send('window-info-changed', currentWindow)
@@ -819,17 +813,17 @@ class WindowManager {
     try {
       const plugins: any = await api.dbGet('plugins')
       if (!plugins || !Array.isArray(plugins)) {
-        console.error('未找到插件列表')
+        console.error('[Window] 未找到插件列表')
         return
       }
 
       const settingPlugin = plugins.find((p: any) => p.name === 'setting')
       if (!settingPlugin) {
-        console.error('未找到设置插件')
+        console.error('[Window] 未找到设置插件')
         return
       }
 
-      console.log('找到设置插件:', settingPlugin.path)
+      console.log('[Window] 找到设置插件:', settingPlugin.path)
 
       // 使用统一的 launch 方法启动设置插件
       const result = await api.launchPlugin({
@@ -840,7 +834,7 @@ class WindowManager {
       })
 
       if (!result.success) {
-        console.error('启动设置插件失败:', result.error)
+        console.error('[Window] 启动设置插件失败:', result.error)
         return
       }
 
@@ -849,7 +843,7 @@ class WindowManager {
       // 使用强制激活逻辑显示窗口
       this.forceActivateWindow()
     } catch (error) {
-      console.error('打开设置插件失败:', error)
+      console.error('[Window] 打开设置插件失败:', error)
     }
   }
 }

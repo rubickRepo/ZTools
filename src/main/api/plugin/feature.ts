@@ -48,7 +48,7 @@ export class PluginFeatureAPI {
           event.returnValue = features
         }
       } catch (error) {
-        console.error('get-features error:', error)
+        console.error('[PluginFeature] get-features error:', error)
         event.returnValue = []
       }
     })
@@ -56,7 +56,7 @@ export class PluginFeatureAPI {
     // 设置动态 feature
     ipcMain.on('set-feature', (event, feature: DynamicFeature) => {
       try {
-        console.log('set-feature', feature)
+        console.log('[PluginFeature] set-feature', feature)
         const pluginName = this.getPluginName(event)
         if (!pluginName) {
           event.returnValue = { success: false, error: 'Plugin not found' }
@@ -91,7 +91,7 @@ export class PluginFeatureAPI {
 
         event.returnValue = { success: true }
       } catch (error: unknown) {
-        console.error('set-feature error:', error)
+        console.error('[PluginFeature] set-feature error:', error)
         event.returnValue = {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -102,7 +102,7 @@ export class PluginFeatureAPI {
     // 删除动态 feature
     ipcMain.on('remove-feature', (event, code: string) => {
       try {
-        console.log('remove-feature', code)
+        console.log('[PluginFeature] remove-feature', code)
         const pluginName = this.getPluginName(event)
         if (!pluginName) {
           event.returnValue = false
@@ -130,7 +130,7 @@ export class PluginFeatureAPI {
           event.returnValue = false
         }
       } catch (error) {
-        console.error('remove-feature error:', error)
+        console.error('[PluginFeature] remove-feature error:', error)
         event.returnValue = false
       }
     })
@@ -159,7 +159,7 @@ export class PluginFeatureAPI {
 
       return []
     } catch (error) {
-      console.error('loadDynamicFeatures error:', error)
+      console.error('[PluginFeature] loadDynamicFeatures error:', error)
       return []
     }
   }
@@ -215,7 +215,7 @@ export class PluginFeatureAPI {
         lmdbInstance.remove(key)
       }
     } catch (error) {
-      console.error('clearPluginFeatures error:', error)
+      console.error('[PluginFeature] clearPluginFeatures error:', error)
     }
   }
 }

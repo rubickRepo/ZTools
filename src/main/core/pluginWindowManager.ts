@@ -45,7 +45,7 @@ class PluginWindowManager {
       preloadPath = path.join(pluginPath, preloadPath)
     }
 
-    console.log('子窗口 preloadPath', preloadPath, pluginPath)
+    console.log('[PluginWindow] 子窗口 preloadPath', preloadPath, pluginPath)
 
     // 使用插件名称创建 session,确保和插件主视图共享同一个 session
     const sess = session.fromPartition('persist:' + pluginName)
@@ -56,7 +56,7 @@ class PluginWindowManager {
 
     // 应用代理配置到插件 session
     proxyManager.applyProxyToSession(sess, `插件窗口 ${pluginName}`).catch((error) => {
-      console.error(`插件窗口 ${pluginName} 应用代理配置失败:`, error)
+      console.error(`[PluginWindow] 插件窗口 ${pluginName} 应用代理配置失败:`, error)
     })
 
     // 合并配置
@@ -124,7 +124,7 @@ class PluginWindowManager {
         break
       }
     }
-    console.warn('父窗口不存在或已销毁')
+    console.warn('[PluginWindow] 父窗口不存在或已销毁')
   }
 
   /**
@@ -143,7 +143,7 @@ class PluginWindowManager {
    * 执行方法
    */
   public executeMethod(windowId: string, path: string[], args: any[]): any {
-    console.log('executeMethod', windowId, path, args)
+    console.log('[PluginWindow] executeMethod', windowId, path, args)
     const windowInfo = this.windowInfoMap.get(windowId)
     if (!windowInfo) return null
 
@@ -236,7 +236,7 @@ class PluginWindowManager {
    * 获取属性值
    */
   public getPropertyByPath(windowId: string, path: string[]): any {
-    console.log('getPropertyByPath', windowId, path)
+    console.log('[PluginWindow] getPropertyByPath', windowId, path)
     const windowInfo = this.windowInfoMap.get(windowId)
     if (!windowInfo) return null
 
@@ -326,7 +326,7 @@ class PluginWindowManager {
       this.windowInfoMap.delete(windowId)
     }
 
-    console.log(`已关闭插件 ${pluginPath} 的 ${windowIdsToClose.length} 个窗口`)
+    console.log(`[PluginWindow] 已关闭插件 ${pluginPath} 的 ${windowIdsToClose.length} 个窗口`)
   }
 
   /**

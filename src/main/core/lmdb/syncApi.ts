@@ -80,7 +80,7 @@ export class SyncApi {
           }
 
           if (!doc._rev || doc._rev !== existingRev) {
-            console.log('版本验证失败', doc._rev, existingRev)
+            console.log('[LMDB] 版本验证失败', doc._rev, existingRev)
             return createErrorResult('conflict', 'Document update conflict', id)
           }
         }
@@ -110,7 +110,7 @@ export class SyncApi {
           }
           // metaDb 使用 string 编码，需要序列化对象
           this.metaDb.putSync(id, safeJsonStringify(metaToSave))
-          console.log('metaDb', metaToSave)
+          console.log('[LMDB] metaDb', metaToSave)
         } else {
           this.metaDb.putSync(id, newRev)
         }
@@ -121,7 +121,7 @@ export class SyncApi {
         return createSuccessResult(id, newRev)
       })
     } catch (e: any) {
-      console.error('put error:', e)
+      console.error('[LMDB] put error:', e)
       return createErrorResult(e.name || 'exception', e.message, doc._id)
     }
   }
@@ -157,7 +157,7 @@ export class SyncApi {
         return { _rev: metaStr }
       }
     } catch (e: any) {
-      console.error('getSyncMeta error:', e)
+      console.error('[LMDB] getSyncMeta error:', e)
       return null
     }
   }
@@ -171,7 +171,7 @@ export class SyncApi {
     try {
       const metaStr = this.metaDb.get(id)
       if (!metaStr) {
-        console.warn(`updateSyncStatus: 文档不存在 ${id}`)
+        console.warn(`[LMDB] updateSyncStatus: 文档不存在 ${id}`)
         return
       }
 
@@ -191,7 +191,7 @@ export class SyncApi {
       // 保存回 metaDb
       this.metaDb.putSync(id, safeJsonStringify(meta))
     } catch (e: any) {
-      console.error('updateSyncStatus error:', e)
+      console.error('[LMDB] updateSyncStatus error:', e)
     }
   }
 
@@ -210,7 +210,7 @@ export class SyncApi {
       const doc = safeJsonParse(docStr)
       return doc
     } catch (e: any) {
-      console.error('get error:', e)
+      console.error('[LMDB] get error:', e)
       return null
     }
   }
@@ -264,13 +264,13 @@ export class SyncApi {
 
       // 2. 使用事务删除
       return this.env.transactionSync(() => {
-        console.log('remove doc:', id)
+        console.log('[LMDB] remove doc:', id)
         this.mainDb.removeSync(id)
         this.metaDb.removeSync(id)
         return createSuccessResult(id)
       })
     } catch (e: any) {
-      console.error('remove error:', e)
+      console.error('[LMDB] remove error:', e)
       const id = typeof docOrId === 'string' ? docOrId : docOrId._id
       return createErrorResult(e.name || 'exception', e.message, id)
     }
@@ -318,7 +318,7 @@ export class SyncApi {
 
       return results
     } catch (e: any) {
-      console.error('bulkDocs error:', e)
+      console.error('[LMDB] bulkDocs error:', e)
       // 如果整体验证失败，返回空数组或抛出错误
       throw e
     }
@@ -376,7 +376,7 @@ export class SyncApi {
 
       return results
     } catch (e: any) {
-      console.error('allDocs error:', e)
+      console.error('[LMDB] allDocs error:', e)
       return []
     }
   }
@@ -421,7 +421,7 @@ export class SyncApi {
         return createSuccessResult(id)
       })
     } catch (e: any) {
-      console.error('postAttachment error:', e)
+      console.error('[LMDB] postAttachment error:', e)
       return createErrorResult(e.name || 'exception', e.message, id)
     }
   }
@@ -440,7 +440,7 @@ export class SyncApi {
 
       return new Uint8Array(buffer)
     } catch (e: any) {
-      console.error('getAttachment error:', e)
+      console.error('[LMDB] getAttachment error:', e)
       return null
     }
   }
@@ -460,7 +460,7 @@ export class SyncApi {
       const metadata = safeJsonParse(metadataStr)
       return metadata
     } catch (e: any) {
-      console.error('getAttachmentType error:', e)
+      console.error('[LMDB] getAttachmentType error:', e)
       return null
     }
   }

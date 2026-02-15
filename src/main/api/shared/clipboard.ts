@@ -19,7 +19,7 @@ export class ClipboardAPI {
         try {
           return await clipboardManager.getHistory(page, pageSize, filter)
         } catch (error) {
-          console.error('获取剪贴板历史失败:', error)
+          console.error('[Clipboard] 获取剪贴板历史失败:', error)
           return { items: [], total: 0, page, pageSize }
         }
       }
@@ -30,7 +30,7 @@ export class ClipboardAPI {
       try {
         return await clipboardManager.search(keyword)
       } catch (error) {
-        console.error('搜索剪贴板失败:', error)
+        console.error('[Clipboard] 搜索剪贴板失败:', error)
         return []
       }
     })
@@ -41,7 +41,7 @@ export class ClipboardAPI {
         const result = await clipboardManager.deleteItem(id)
         return { success: result }
       } catch (error) {
-        console.error('删除剪贴板记录失败:', error)
+        console.error('[Clipboard] 删除剪贴板记录失败:', error)
         return { success: false }
       }
     })
@@ -52,7 +52,7 @@ export class ClipboardAPI {
         const count = await clipboardManager.clear(type as any)
         return { success: true, count }
       } catch (error) {
-        console.error('清空剪贴板历史失败:', error)
+        console.error('[Clipboard] 清空剪贴板历史失败:', error)
         return { success: false, count: 0 }
       }
     })
@@ -62,7 +62,7 @@ export class ClipboardAPI {
       try {
         return await clipboardManager.getStatus()
       } catch (error) {
-        console.error('获取剪贴板状态失败:', error)
+        console.error('[Clipboard] 获取剪贴板状态失败:', error)
         return {
           isRunning: false,
           itemCount: 0,
@@ -88,7 +88,7 @@ export class ClipboardAPI {
         }
         return { success: result }
       } catch (error) {
-        console.error('写回剪贴板失败:', error)
+        console.error('[Clipboard] 写回剪贴板失败:', error)
         return { success: false }
       }
     })
@@ -115,7 +115,7 @@ export class ClipboardAPI {
           }
           return { success: result }
         } catch (error) {
-          console.error('写入剪贴板内容失败:', error)
+          console.error('[Clipboard] 写入剪贴板内容失败:', error)
           return { success: false }
         }
       }
@@ -127,7 +127,7 @@ export class ClipboardAPI {
         clipboardManager.updateConfig(config)
         return { success: true }
       } catch (error) {
-        console.error('更新剪贴板配置失败:', error)
+        console.error('[Clipboard] 更新剪贴板配置失败:', error)
         return { success: false }
       }
     })

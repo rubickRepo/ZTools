@@ -88,7 +88,7 @@ export function safeJsonParse(str: string): any {
   try {
     return JSON.parse(str)
   } catch (e) {
-    console.error('JSON parse error:', e)
+    console.error('[LMDB] JSON parse error:', e)
     return null
   }
 }
@@ -102,7 +102,7 @@ export function safeJsonStringify(obj: any): string {
   try {
     return JSON.stringify(obj)
   } catch (e) {
-    console.error('JSON stringify error:', e)
+    console.error('[LMDB] JSON stringify error:', e)
     return ''
   }
 }

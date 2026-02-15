@@ -60,7 +60,9 @@ let iconExtractQueue: Promise<void> = Promise.resolve()
 function extractIconSerialized(iconPath: string, size: 16 | 32 | 64 | 256): Promise<Buffer | null> {
   return new Promise((resolve) => {
     iconExtractQueue = iconExtractQueue.then(() => {
+      const b = performance.now()
       const result = IconExtractor.getFileIcon(iconPath, size)
+      console.debug(`[Main]获取图标【${iconPath}】耗时：${performance.now() - b}`)
       resolve(result)
     })
   })
@@ -78,6 +80,10 @@ log.transports.console.level = 'debug'
 // if (process.env.NODE_ENV === 'production') {
 Object.assign(console, log.functions)
 // }
+
+// 安装日志收集器 hook（用于设置插件的调试控制台）
+import logCollector from './core/logCollector.js'
+logCollector.install()
 
 // 开发模式下禁用某些警告
 if (process.env.NODE_ENV !== 'production') {
@@ -151,7 +157,7 @@ export function registerIconProtocolForSession(targetSession: Electron.Session):
             )
             buffer = await fs.readFile(tempPngPath)
           } catch (error) {
-            console.error('sips 转换失败:', iconPath, error)
+            console.error('[Main] sips 转换失败:', iconPath, error)
             throw new Error('Icon conversion failed')
           }
         }
@@ -176,7 +182,7 @@ export function registerIconProtocolForSession(targetSession: Electron.Session):
         }
       })
     } catch (error) {
-      console.error('图标提取失败:', error)
+      console.error('[Main] 图标提取失败:', error)
       return new Response('Icon Error', { status: 404 })
     }
   })
@@ -236,7 +242,7 @@ app.on('before-quit', (event) => {
   if (!windowManager.getQuitting()) {
     // 不是主动退出（如 Command+Q），阻止退出
     event.preventDefault()
-    console.log('阻止了 Command+Q 退出，请使用托盘菜单退出')
+    console.log('[Main] 阻止了 Command+Q 退出，请使用托盘菜单退出')
     // 隐藏窗口
     windowManager.hideWindow(false)
   } else {
@@ -254,13 +260,13 @@ app.on('activate', async () => {
 // 开发模式下监听 Ctrl+C 信号
 if (process.env.NODE_ENV !== 'production') {
   process.on('SIGINT', () => {
-    console.log('收到 SIGINT 信号，退出应用')
+    console.log('[Main] 收到 SIGINT 信号，退出应用')
     app.quit()
     process.exit(0)
   })
 
   process.on('SIGTERM', () => {
-    console.log('收到 SIGTERM 信号，退出应用')
+    console.log('[Main] 收到 SIGTERM 信号，退出应用')
     app.quit()
     process.exit(0)
   })

@@ -16,7 +16,7 @@ export class PluginShellAPI {
         await shell.openExternal(url)
         event.returnValue = { success: true }
       } catch (error: unknown) {
-        console.error('打开 URL 失败:', error)
+        console.error('[PluginShell] 打开 URL 失败:', error)
         event.returnValue = {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -29,7 +29,7 @@ export class PluginShellAPI {
       try {
         shell.showItemInFolder(fullPath)
       } catch (error: unknown) {
-        console.error('在文件管理器中显示文件失败:', error)
+        console.error('[PluginShell] 在文件管理器中显示文件失败:', error)
       }
       event.returnValue = undefined
     })
@@ -43,7 +43,7 @@ export class PluginShellAPI {
           error: errorMessage || undefined
         }
       } catch (error: unknown) {
-        console.error('使用系统默认方式打开文件失败:', error)
+        console.error('[PluginShell] 使用系统默认方式打开文件失败:', error)
         event.returnValue = {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'

@@ -29,7 +29,7 @@ function execCommand(command: string, args: string[] = []): void {
 
   // 捕获子进程错误（如 EACCES），避免变成 uncaught exception
   subprocess.on('error', (err) => {
-    console.error(`执行命令失败 [${command}]:`, err)
+    console.error(`[Launcher] 执行命令失败 [${command}]:`, err)
   })
 
   // 不等待子进程，让 Node.js 可以继续执行
@@ -55,7 +55,7 @@ export async function launchApp(
 
     // 如果用户点击取消按钮，则不执行
     if (result.response === confirmDialog.cancelId) {
-      console.log('用户取消了操作')
+      console.log('[Launcher] 用户取消了操作')
       return
     }
   }
@@ -65,10 +65,10 @@ export async function launchApp(
     const appId = appPath.slice(4)
     try {
       UwpManager.launchUwpApp(appId)
-      console.log(`成功启动 UWP 应用: ${appId}`)
+      console.log(`[Launcher] 成功启动 UWP 应用: ${appId}`)
       return
     } catch (error) {
-      console.error('启动 UWP 应用失败:', error)
+      console.error('[Launcher] 启动 UWP 应用失败:', error)
       throw error
     }
   }
@@ -78,10 +78,10 @@ export async function launchApp(
   if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(appPath) && !appPath.includes('\\')) {
     try {
       await shell.openExternal(appPath)
-      console.log(`成功打开协议链接: ${appPath}`)
+      console.log(`[Launcher] 成功打开协议链接: ${appPath}`)
       return
     } catch (error) {
-      console.error('打开协议链接失败:', error)
+      console.error('[Launcher] 打开协议链接失败:', error)
       throw error
     }
   }
@@ -97,10 +97,10 @@ export async function launchApp(
       })
       subprocess.unref()
 
-      console.log(`成功执行 PowerShell 命令: ${appPath}`)
+      console.log(`[Launcher] 成功执行 PowerShell 命令: ${appPath}`)
       return
     } catch (error) {
-      console.error('执行 PowerShell 命令失败:', error)
+      console.error('[Launcher] 执行 PowerShell 命令失败:', error)
       throw error
     }
   }
@@ -113,10 +113,10 @@ export async function launchApp(
   ) {
     try {
       execCommand(appPath)
-      console.log(`成功执行系统命令: ${appPath}`)
+      console.log(`[Launcher] 成功执行系统命令: ${appPath}`)
       return
     } catch (error) {
-      console.error('执行系统命令失败:', error)
+      console.error('[Launcher] 执行系统命令失败:', error)
       throw error
     }
   }
@@ -128,10 +128,10 @@ export async function launchApp(
   if (ext === 'cpl') {
     try {
       execCommand('control.exe', [appPath])
-      console.log(`成功打开控制面板项: ${appPath}`)
+      console.log(`[Launcher] 成功打开控制面板项: ${appPath}`)
       return
     } catch (error) {
-      console.error('打开控制面板项失败:', error)
+      console.error('[Launcher] 打开控制面板项失败:', error)
       throw error
     }
   }
@@ -140,10 +140,10 @@ export async function launchApp(
   if (ext === 'msc') {
     try {
       execCommand(`mmc.exe ${appPath}`)
-      console.log(`成功打开管理工具: ${appPath}`)
+      console.log(`[Launcher] 成功打开管理工具: ${appPath}`)
       return
     } catch (error) {
-      console.error('打开管理工具失败:', error)
+      console.error('[Launcher] 打开管理工具失败:', error)
       throw error
     }
   }
@@ -156,7 +156,7 @@ export async function launchApp(
     if (error) {
       throw new Error(`启动系统命令失败: ${error}`)
     }
-    console.log(`成功启动系统命令: ${appPath}`)
+    console.log(`[Launcher] 成功启动系统命令: ${appPath}`)
     return
   }
 
@@ -166,7 +166,7 @@ export async function launchApp(
       .openPath(appPath)
       .then((error) => {
         if (error) {
-          console.error('shell.openPath 失败:', error)
+          console.error('[Launcher] shell.openPath 失败:', error)
 
           // .lnk 文件如果失败，直接报错（不应该失败）
           if (appPath.toLowerCase().endsWith('.lnk')) {
@@ -176,27 +176,27 @@ export async function launchApp(
 
           // 对于 .exe 文件，尝试使用 shell.openExternal()
           if (appPath.toLowerCase().endsWith('.exe')) {
-            console.log('尝试使用 openExternal 启动...')
+            console.log('[Launcher] 尝试使用 openExternal 启动...')
             shell
               .openExternal(appPath)
               .then(() => {
-                console.log(`成功启动应用（openExternal）: ${appPath}`)
+                console.log(`[Launcher] 成功启动应用（openExternal）: ${appPath}`)
                 resolve()
               })
               .catch((extError) => {
-                console.error('openExternal 启动也失败:', extError)
+                console.error('[Launcher] openExternal 启动也失败:', extError)
                 reject(new Error(`启动失败: ${error}`))
               })
           } else {
             reject(new Error(`启动失败: ${error}`))
           }
         } else {
-          console.log(`成功启动应用: ${appPath}`)
+          console.log(`[Launcher] 成功启动应用: ${appPath}`)
           resolve()
         }
       })
       .catch((error) => {
-        console.error('启动应用失败:', error)
+        console.error('[Launcher] 启动应用失败:', error)
         reject(error)
       })
   })

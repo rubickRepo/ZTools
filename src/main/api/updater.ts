@@ -67,7 +67,7 @@ export class UpdaterAPI {
       const autoCheck = settings?.autoCheckUpdate ?? true // 默认开启
 
       if (!autoCheck) {
-        console.log('自动检查更新已禁用')
+        console.log('[Updater] 自动检查更新已禁用')
         return
       }
 
@@ -80,7 +80,7 @@ export class UpdaterAPI {
       // 每30分钟检查一次
       this.checkTimer = setInterval(() => this.autoCheckAndDownload(), 30 * 60 * 1000)
     } catch (error) {
-      console.error('启动自动检查更新失败:', error)
+      console.error('[Updater] 启动自动检查更新失败:', error)
       // 出错时默认启动
       this.autoCheckAndDownload()
       this.checkTimer = setInterval(() => this.autoCheckAndDownload(), 30 * 60 * 1000)
@@ -94,7 +94,7 @@ export class UpdaterAPI {
     if (this.checkTimer) {
       clearInterval(this.checkTimer)
       this.checkTimer = null
-      console.log('自动检查更新已停止')
+      console.log('[Updater] 自动检查更新已停止')
     }
   }
 
@@ -114,18 +114,18 @@ export class UpdaterAPI {
    */
   private async autoCheckAndDownload(): Promise<void> {
     try {
-      console.log('开始自动检查更新...')
+      console.log('[Updater] 开始自动检查更新...')
 
       // 如果已经下载过更新，不再重复下载
       if (this.downloadedUpdateInfo) {
-        console.log('已有下载的更新，跳过检查')
+        console.log('[Updater] 已有下载的更新，跳过检查')
         return
       }
 
       const result = await this.checkUpdate()
 
       if (result.hasUpdate && result.updateInfo) {
-        console.log('发现新版本，开始自动下载...', result.updateInfo)
+        console.log('[Updater] 发现新版本，开始自动下载...', result.updateInfo)
 
         // 通知渲染进程开始下载
         this.mainWindow?.webContents.send('update-download-start', {
@@ -145,19 +145,19 @@ export class UpdaterAPI {
             changelog: result.updateInfo.changelog
           })
 
-          console.log('更新下载完成，等待用户安装')
+          console.log('[Updater] 更新下载完成，等待用户安装')
 
           // 弹出更新窗口
           this.createUpdateWindow()
         } else {
-          console.error('更新下载失败:', downloadResult.error)
+          console.error('[Updater] 更新下载失败:', downloadResult.error)
           this.mainWindow?.webContents.send('update-download-failed', {
             error: downloadResult.error instanceof Error ? downloadResult.error.message : '下载失败'
           })
         }
       }
     } catch (error) {
-      console.error('自动检查更新失败:', error)
+      console.error('[Updater] 自动检查更新失败:', error)
     }
   }
 
@@ -206,7 +206,7 @@ export class UpdaterAPI {
       // 1. 获取下载 URL（已经在 checkUpdate 中构建好了）
       const downloadUrl = this.selectDownloadUrl(updateInfo)
 
-      console.log('下载更新包:', downloadUrl)
+      console.log('[Updater] 下载更新包:', downloadUrl)
 
       // 2. 下载更新包
       const tempDir = path.join(app.getPath('userData'), 'ztools-update-pkg')
@@ -217,7 +217,7 @@ export class UpdaterAPI {
       await downloadFile(downloadUrl, tempZipPath)
 
       // 3. 解压
-      console.log('解压更新包...')
+      console.log('[Updater] 解压更新包...')
       await fs.mkdir(extractPath, { recursive: true })
 
       const zip = new AdmZip(tempZipPath)
@@ -237,21 +237,21 @@ export class UpdaterAPI {
       try {
         await fs.access(appAsarTmp)
         await fs.rename(appAsarTmp, appAsar)
-        console.log('成功重命名: app.asar.tmp -> app.asar')
+        console.log('[Updater] 成功重命名: app.asar.tmp -> app.asar')
       } catch {
-        console.log('未找到 app.asar.tmp，可能直接是 app.asar')
+        console.log('[Updater] 未找到 app.asar.tmp，可能直接是 app.asar')
       }
 
       // 5. 删除 zip 文件节省空间
       try {
         await fs.unlink(tempZipPath)
       } catch (e) {
-        console.error('删除 zip 文件失败:', e)
+        console.error('[Updater] 删除 zip 文件失败:', e)
       }
 
       return { success: true, extractPath }
     } catch (error: unknown) {
-      console.error('下载更新失败:', error)
+      console.error('[Updater] 下载更新失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -298,7 +298,7 @@ export class UpdaterAPI {
           await fs.access(oldUpdaterPath)
           // 找到旧版本，重命名为新版本
           await fs.rename(oldUpdaterPath, agentPath)
-          console.log('已将 ztools-updater.exe 重命名为 ztools-agent.exe')
+          console.log('[Updater] 已将 ztools-updater.exe 重命名为 ztools-agent.exe')
           updaterPath = agentPath
         } catch {
           // 两个文件都不存在，使用默认路径（后续会报错）
@@ -333,7 +333,7 @@ export class UpdaterAPI {
       args.push('--unpacked-dst', paths.unpackedDst)
     }
 
-    console.log('启动升级程序:', paths.updaterPath, args)
+    console.log('[Updater] 启动升级程序:', paths.updaterPath, args)
 
     // 启动 updater
     const subprocess = spawn(paths.updaterPath, args, {
@@ -344,7 +344,7 @@ export class UpdaterAPI {
     subprocess.unref()
 
     // 退出应用
-    console.log('应用即将退出进行更新...')
+    console.log('[Updater] 应用即将退出进行更新...')
     app.exit(0)
   }
 
@@ -362,7 +362,7 @@ export class UpdaterAPI {
 
       return { success: true }
     } catch (error: unknown) {
-      console.error('安装更新失败:', error)
+      console.error('[Updater] 安装更新失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -382,7 +382,7 @@ export class UpdaterAPI {
    */
   private async checkUpdate(): Promise<any> {
     try {
-      console.log('开始检查更新...')
+      console.log('[Updater] 开始检查更新...')
 
       // 1. 下载 latest.yml 文件
       const tempDir = path.join(app.getPath('userData'), 'ztools-update-check')
@@ -390,7 +390,7 @@ export class UpdaterAPI {
       const tempFilePath = path.join(tempDir, `latest-${Date.now()}.yml`)
 
       try {
-        console.log('下载 latest.yml:', this.latestYmlUrl)
+        console.log('[Updater] 下载 latest.yml:', this.latestYmlUrl)
         await downloadFile(this.latestYmlUrl, tempFilePath)
 
         // 2. 解析 YAML 文件
@@ -408,7 +408,7 @@ export class UpdaterAPI {
 
         // 3. 比较版本号
         if (this.compareVersions(latestVersion, currentVersion) <= 0) {
-          console.log('当前已是最新版本')
+          console.log('[Updater] 当前已是最新版本')
           return { hasUpdate: false, latestVersion, currentVersion }
         }
 
@@ -432,11 +432,11 @@ export class UpdaterAPI {
         try {
           await fs.rm(tempDir, { recursive: true, force: true })
         } catch (e) {
-          console.error('清理临时文件失败:', e)
+          console.error('[Updater] 清理临时文件失败:', e)
         }
       }
     } catch (error: unknown) {
-      console.error('检查更新失败:', error)
+      console.error('[Updater] 检查更新失败:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : '检查更新失败'
@@ -449,7 +449,7 @@ export class UpdaterAPI {
    */
   private async startUpdate(updateInfo: any): Promise<any> {
     try {
-      console.log('开始更新流程...', updateInfo)
+      console.log('[Updater] 开始更新流程...', updateInfo)
 
       // 1. 下载并解压更新包
       const downloadResult = await this.downloadAndExtractUpdate(updateInfo)
@@ -465,7 +465,7 @@ export class UpdaterAPI {
 
       return { success: true }
     } catch (error: unknown) {
-      console.error('更新流程失败:', error)
+      console.error('[Updater] 更新流程失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }

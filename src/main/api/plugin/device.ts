@@ -28,7 +28,7 @@ export class PluginDeviceAPI {
         const id = this.getDeviceId()
         event.returnValue = id
       } catch (error) {
-        console.error('get-native-id error:', error)
+        console.error('[PluginDevice] get-native-id error:', error)
         event.returnValue = null
       }
     })
@@ -39,7 +39,7 @@ export class PluginDeviceAPI {
         const version = app.getVersion()
         event.returnValue = version
       } catch (error) {
-        console.error('get-app-version error:', error)
+        console.error('[PluginDevice] get-app-version error:', error)
         event.returnValue = null
       }
     })
@@ -62,7 +62,7 @@ export class PluginDeviceAPI {
       this.deviceId = createHash('md5').update(hardwareUUID).digest('hex')
       return this.deviceId
     } catch (error) {
-      console.error('获取设备 ID 失败:', error)
+      console.error('[PluginDevice] 获取设备 ID 失败:', error)
       // 如果获取硬件信息失败，使用备用方案（基于用户名和主机名）
       const fallbackString = `${process.env.USER || 'unknown'}-${hostname()}`
       this.deviceId = createHash('md5').update(fallbackString).digest('hex')
@@ -109,7 +109,7 @@ export class PluginDeviceAPI {
 
       throw new Error(`不支持的平台: ${platform}`)
     } catch (error) {
-      console.error('获取硬件 UUID 失败:', error)
+      console.error('[PluginDevice] 获取硬件 UUID 失败:', error)
       throw error
     }
   }

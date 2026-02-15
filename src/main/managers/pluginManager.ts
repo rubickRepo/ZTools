@@ -16,7 +16,7 @@ import proxyManager from './proxyManager'
 import devToolsShortcut from '../utils/devToolsShortcut'
 import windowManager from './windowManager'
 
-console.log('mainPreload', mainPreload)
+console.log('[Plugin] mainPreload', mainPreload)
 
 interface PluginViewInfo {
   path: string
@@ -42,7 +42,7 @@ class PluginManager {
         return plugins.find((p: any) => p.path === pluginPath) || null
       }
     } catch (error) {
-      console.error('查询插件信息失败:', error)
+      console.error('[Plugin] 查询插件信息失败:', error)
     }
     return null
   }
@@ -74,15 +74,15 @@ class PluginManager {
     const isConfigHeadless = !pluginConfig.main
 
     if (isConfigHeadless) {
-      console.log('检测到无界面插件(Config):', pluginConfig.name)
+      console.log('[Plugin] 检测到无界面插件(Config):', pluginConfig.name)
       return { pluginUrl: pathToFileURL(hideWindowHtml).href, isConfigHeadless }
     }
     if (isDevelopment && pluginConfig.development?.main) {
-      console.log('开发中插件，使用 development.main:', pluginConfig.development.main)
+      console.log('[Plugin] 开发中插件，使用 development.main:', pluginConfig.development.main)
       return { pluginUrl: pluginConfig.development.main, isConfigHeadless }
     }
     if (pluginConfig.main.startsWith('http')) {
-      console.log('网络插件:', pluginConfig.main)
+      console.log('[Plugin] 网络插件:', pluginConfig.main)
       return { pluginUrl: pluginConfig.main, isConfigHeadless }
     }
     return {
@@ -195,7 +195,7 @@ class PluginManager {
   ): Promise<void> {
     if (!this.mainWindow) return
 
-    console.log('准备加载插件:', { pluginPath, featureCode })
+    console.log('[Plugin] 准备加载插件:', { pluginPath, featureCode })
 
     const pluginInfoFromDB = await this.fetchPluginInfoFromDB(pluginPath)
 
@@ -238,7 +238,7 @@ class PluginManager {
     this.pluginView = cached.view
     this.mainWindow.contentView.addChildView(this.pluginView)
 
-    console.log('插件视图获取焦点')
+    console.log('[Plugin] 插件视图获取焦点')
     this.pluginView.webContents.focus()
 
     // 恢复之前的高度或使用默认高度
@@ -266,10 +266,10 @@ class PluginManager {
       )
       this.sendPluginLoadedEvent(pluginConfig.name, pluginPath)
     } catch (error) {
-      console.error('读取插件配置失败:', error)
+      console.error('[Plugin] 读取插件配置失败:', error)
     }
 
-    console.log('复用缓存的 Plugin BrowserView')
+    console.log('[Plugin] 复用缓存的 Plugin BrowserView')
     this.processPluginMode(pluginPath, featureCode, this.pluginView)
   }
 
@@ -353,9 +353,9 @@ class PluginManager {
         }
       })
 
-      console.log('Plugin WebContentsView 已创建并缓存')
+      console.log('[Plugin] Plugin WebContentsView 已创建并缓存')
     } catch (error) {
-      console.error('加载插件配置失败:', error)
+      console.error('[Plugin] 加载插件配置失败:', error)
     }
   }
 
@@ -365,11 +365,10 @@ class PluginManager {
    */
   private registerMainWindowPluginEvents(view: WebContentsView, pluginPath: string): void {
     view.webContents.on('devtools-opened', () => {
-      console.log('插件开发者工具已打开')
+      console.log('[Plugin] 插件开发者工具已打开')
     })
 
     view.webContents.on('focus', () => {
-      console.log('插件视图 webContents 获得焦点')
       windowManager.updateFocusTarget('plugin')
       if (this.pluginView && !this.pluginView.webContents.isDestroyed()) {
         devToolsShortcut.register(this.pluginView.webContents)
@@ -388,7 +387,7 @@ class PluginManager {
         (input.meta || input.control)
       ) {
         event.preventDefault()
-        console.log('插件视图检测到 Cmd+D 快捷键')
+        console.log('[Plugin] 插件视图检测到 Cmd+D 快捷键')
         this.detachCurrentPlugin()
       }
 
@@ -398,14 +397,14 @@ class PluginManager {
         (input.meta || input.control)
       ) {
         event.preventDefault()
-        console.log('插件视图检测到 Cmd+Q 快捷键，终止插件')
+        console.log('[Plugin] 插件视图检测到 Cmd+Q 快捷键，终止插件')
         this.killCurrentPlugin()
       }
     })
 
     // 插件进程崩溃或退出
     view.webContents.on('render-process-gone', (_event, details) => {
-      console.log('插件进程已退出:', {
+      console.log('[Plugin] 插件进程已退出:', {
         pluginPath,
         reason: details.reason,
         exitCode: details.exitCode
@@ -418,14 +417,14 @@ class PluginManager {
       const index = this.pluginViews.findIndex((v) => v.path === pluginPath)
       if (index !== -1) {
         this.pluginViews.splice(index, 1)
-        console.log('已从缓存中移除崩溃的插件:', pluginPath)
+        console.log('[Plugin] 已从缓存中移除崩溃的插件:', pluginPath)
       }
 
       if (this.currentPluginPath === pluginPath) {
         this.hidePluginView()
         windowManager.notifyBackToSearch()
         this.currentPluginPath = null
-        console.log('插件崩溃，已返回搜索页面')
+        console.log('[Plugin] 插件崩溃，已返回搜索页面')
       }
 
       pluginWindowManager.closeByPlugin(pluginPath)
@@ -456,7 +455,7 @@ class PluginManager {
 
       // 仅移除视图以达到隐藏效果，但保留实例以便复用
       this.mainWindow.contentView.removeChildView(pluginView)
-      console.log('Plugin WebContentsView 已隐藏，缓存保留')
+      console.log('[Plugin] Plugin WebContentsView 已隐藏，缓存保留')
 
       // 将当前引用清空，但缓存仍保留
       this.pluginView = null
@@ -485,7 +484,7 @@ class PluginManager {
       }
     } catch (error) {
       // 配置不存在或读取失败，保持默认行为（不销毁）
-      console.log('读取 outKillPlugin 配置失败:', error)
+      console.log('[Plugin] 读取 outKillPlugin 配置失败:', error)
     }
   }
 
@@ -501,7 +500,7 @@ class PluginManager {
 
   public focusPluginView(): void {
     if (this.pluginView && this.pluginView.webContents) {
-      console.log('插件视图获取焦点')
+      console.log('[Plugin] 插件视图获取焦点')
       this.pluginView.webContents.focus()
     }
   }
@@ -532,7 +531,7 @@ class PluginManager {
     try {
       const index = this.pluginViews.findIndex((v) => v.path === pluginPath)
       if (index === -1) {
-        console.log('插件未运行:', pluginPath)
+        console.log('[Plugin] 插件未运行:', pluginPath)
         return false
       }
 
@@ -561,10 +560,10 @@ class PluginManager {
       // 从缓存中移除
       this.pluginViews.splice(index, 1)
 
-      console.log('插件已终止:', pluginPath)
+      console.log('[Plugin] 插件已终止:', pluginPath)
       return true
     } catch (error) {
-      console.error('终止插件失败:', error)
+      console.error('[Plugin] 终止插件失败:', error)
       return false
     }
   }
@@ -582,9 +581,9 @@ class PluginManager {
         }
         // 关闭该插件创建的所有窗口
         pluginWindowManager.closeByPlugin(path)
-        console.log('插件已终止:', path)
+        console.log('[Plugin] 插件已终止:', path)
       } catch (error) {
-        console.error('终止插件失败:', path, error)
+        console.error('[Plugin] 终止插件失败:', path, error)
       }
     }
 
@@ -603,7 +602,7 @@ class PluginManager {
    */
   public killCurrentPlugin(): void {
     if (!this.currentPluginPath) {
-      console.log('没有正在运行的插件')
+      console.log('[Plugin] 没有正在运行的插件')
       return
     }
 
@@ -616,7 +615,7 @@ class PluginManager {
       windowManager.notifyBackToSearch()
       // 主窗口获取焦点
       this.mainWindow.webContents.focus()
-      console.log('已终止插件并返回搜索页面')
+      console.log('[Plugin] 已终止插件并返回搜索页面')
     }
   }
 
@@ -626,16 +625,16 @@ class PluginManager {
   ): boolean {
     try {
       if (!this.pluginView || this.pluginView.webContents.isDestroyed()) {
-        console.log('没有活动的插件视图')
+        console.log('[Plugin] 没有活动的插件视图')
         return false
       }
 
       this.pluginView.webContents.sendInputEvent(event)
 
-      console.log('发送输入事件:', event)
+      console.log('[Plugin] 发送输入事件:', event)
       return true
     } catch (error) {
-      console.error('发送输入事件失败:', error)
+      console.error('[Plugin] 发送输入事件失败:', error)
       return false
     }
   }
@@ -644,7 +643,7 @@ class PluginManager {
   public openPluginDevTools(): boolean {
     try {
       if (!this.pluginView || this.pluginView.webContents.isDestroyed()) {
-        console.log('没有活动的插件视图')
+        console.log('[Plugin] 没有活动的插件视图')
         return false
       }
 
@@ -652,15 +651,15 @@ class PluginManager {
       if (this.pluginView.webContents.isDevToolsOpened()) {
         // 如果已打开，关闭开发者工具
         this.pluginView.webContents.closeDevTools()
-        console.log('已关闭插件开发者工具')
+        console.log('[Plugin] 已关闭插件开发者工具')
       } else {
         // 如果未打开，打开开发者工具
         this.pluginView.webContents.openDevTools({ mode: 'detach' })
-        console.log('已打开插件开发者工具')
+        console.log('[Plugin] 已打开插件开发者工具')
       }
       return true
     } catch (error) {
-      console.error('切换开发者工具失败:', error)
+      console.error('[Plugin] 切换开发者工具失败:', error)
       return false
     }
   }
@@ -669,7 +668,7 @@ class PluginManager {
   public setExpendHeight(height: number, updateCache: boolean = true): void {
     if (!this.mainWindow || !this.pluginView) return
 
-    console.log('设置插件高度:', height)
+    console.log('[Plugin] 设置插件高度:', height)
 
     // 搜索框高度
     const mainContentHeight = WINDOW_INITIAL_HEIGHT
@@ -782,7 +781,7 @@ class PluginManager {
     view: WebContentsView
   ): Promise<void> {
     const mode = await this.getPluginMode(view.webContents, featureCode)
-    console.log('插件模式:', mode)
+    console.log('[Plugin] 插件模式:', mode)
 
     // 检查视图是否仍是活动视图
     if (this.pluginView !== view) return
@@ -826,7 +825,7 @@ class PluginManager {
       throw new Error('Plugin view is destroyed')
     }
 
-    console.log('调用无界面插件方法:', { pluginPath, featureCode, action })
+    console.log('[Plugin] 调用无界面插件方法:', { pluginPath, featureCode, action })
 
     // 生成唯一的调用 ID
     const callId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
@@ -862,7 +861,7 @@ class PluginManager {
   public handlePluginEsc(): void {
     // 记录 ESC 触发时间
     this.lastPluginEscTime = Date.now()
-    console.log('插件按下 ESC 键 (Main Process)，返回搜索页面')
+    console.log('[Plugin] 插件按下 ESC 键 (Main Process)，返回搜索页面')
     this.hidePluginView()
     windowManager.notifyBackToSearch()
     // 主窗口获取焦点
@@ -921,7 +920,7 @@ class PluginManager {
         return { width: clampedWidth, height: clampedHeight }
       }
     } catch (error) {
-      console.error('读取分离窗口尺寸失败:', error)
+      console.error('[Plugin] 读取分离窗口尺寸失败:', error)
     }
 
     return null
@@ -938,7 +937,7 @@ class PluginManager {
     featureCode: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log('直接在独立窗口中创建插件:', { pluginPath, featureCode })
+      console.log('[Plugin] 直接在独立窗口中创建插件:', { pluginPath, featureCode })
 
       const pluginInfoFromDB = await this.fetchPluginInfoFromDB(pluginPath)
       const pluginConfig = this.readPluginConfig(pluginPath)
@@ -962,7 +961,7 @@ class PluginManager {
 
       // 监听插件进程崩溃或退出
       pluginView.webContents.on('render-process-gone', (_event, details) => {
-        console.log('独立窗口插件进程已退出:', {
+        console.log('[Plugin] 独立窗口插件进程已退出:', {
           pluginPath,
           reason: details.reason,
           exitCode: details.exitCode
@@ -1002,10 +1001,10 @@ class PluginManager {
         pluginView.webContents.send('on-plugin-enter', api.getLaunchParam())
       })
 
-      console.log('插件已在独立窗口中创建:', pluginConfig.name)
+      console.log('[Plugin] 插件已在独立窗口中创建:', pluginConfig.name)
       return { success: true }
     } catch (error: unknown) {
-      console.error('在独立窗口中创建插件失败:', error)
+      console.error('[Plugin] 在独立窗口中创建插件失败:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : '未知错误'
@@ -1053,13 +1052,13 @@ class PluginManager {
           'document.activeElement?.classList.contains("search-input")'
         )
         shouldAutoFocusSubInput = isMainWindowFocused && isInputFocused
-        console.log('主窗口聚焦状态:', {
+        console.log('[Plugin] 主窗口聚焦状态:', {
           windowFocused: isMainWindowFocused,
           inputFocused: isInputFocused,
           shouldAutoFocus: shouldAutoFocusSubInput
         })
       } catch (error) {
-        console.error('检测输入框聚焦状态失败:', error)
+        console.error('[Plugin] 检测输入框聚焦状态失败:', error)
       }
 
       // 使用新的分离窗口管理器创建窗口（使用缓存的搜索框状态）
@@ -1100,10 +1099,10 @@ class PluginManager {
       this.pluginView = null
       this.currentPluginPath = null
 
-      console.log('插件已分离到独立窗口:', pluginConfig.name)
+      console.log('[Plugin] 插件已分离到独立窗口:', pluginConfig.name)
       return { success: true }
     } catch (error: unknown) {
-      console.error('分离插件失败:', error)
+      console.error('[Plugin] 分离插件失败:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : '未知错误'

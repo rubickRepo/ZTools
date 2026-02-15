@@ -58,7 +58,7 @@ export class PluginScreenAPI {
         }
         const window = BrowserWindow.fromWebContents(event.sender)
         if (!window) {
-          console.error('无法获取调用者的窗口')
+          console.error('[PluginScreen] 无法获取调用者的窗口')
           event.returnValue = rect
           return
         }
@@ -79,7 +79,7 @@ export class PluginScreenAPI {
         const sources = await desktopCapturer.getSources(options)
         return sources
       } catch (error) {
-        console.error('获取桌面捕获源失败:', error)
+        console.error('[PluginScreen] 获取桌面捕获源失败:', error)
         throw error
       }
     })

@@ -105,7 +105,7 @@ export class LocalShortcutsAPI {
       const shortcuts = await databaseAPI.dbGet(LOCAL_SHORTCUTS_KEY)
       return shortcuts || []
     } catch (error) {
-      console.error('获取本地启动项失败:', error)
+      console.error('[LocalShortcut] 获取本地启动项失败:', error)
       return []
     }
   }
@@ -190,7 +190,7 @@ export class LocalShortcutsAPI {
           const iconData = await app.getFileIcon(selectedPath, { size: 'normal' })
           icon = iconData.toDataURL()
         } catch (error) {
-          console.warn('获取文件图标失败:', error)
+          console.warn('[LocalShortcut] 获取文件图标失败:', error)
         }
       }
 
@@ -228,14 +228,14 @@ export class LocalShortcutsAPI {
       // 保存到数据库
       await databaseAPI.dbPut(LOCAL_SHORTCUTS_KEY, shortcuts)
 
-      console.log('添加本地启动项成功:', shortcut.name)
+      console.log('[LocalShortcut] 添加本地启动项成功:', shortcut.name)
 
       // 通知渲染进程刷新指令列表
       this.mainWindow?.webContents.send('apps-changed')
 
       return { success: true }
     } catch (error) {
-      console.error('添加本地启动项失败:', error)
+      console.error('[LocalShortcut] 添加本地启动项失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -295,7 +295,7 @@ export class LocalShortcutsAPI {
           const iconData = await app.getFileIcon(selectedPath, { size: 'normal' })
           icon = iconData.toDataURL()
         } catch (error) {
-          console.warn('获取文件图标失败:', error)
+          console.warn('[LocalShortcut] 获取文件图标失败:', error)
         }
       }
 
@@ -333,14 +333,14 @@ export class LocalShortcutsAPI {
       // 保存到数据库
       await databaseAPI.dbPut(LOCAL_SHORTCUTS_KEY, shortcuts)
 
-      console.log('添加本地启动项成功:', shortcut.name)
+      console.log('[LocalShortcut] 添加本地启动项成功:', shortcut.name)
 
       // 通知渲染进程刷新指令列表
       this.mainWindow?.webContents.send('apps-changed')
 
       return { success: true }
     } catch (error) {
-      console.error('添加本地启动项失败:', error)
+      console.error('[LocalShortcut] 添加本地启动项失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -359,14 +359,14 @@ export class LocalShortcutsAPI {
 
       await databaseAPI.dbPut(LOCAL_SHORTCUTS_KEY, filtered)
 
-      console.log('删除本地启动项成功:', id)
+      console.log('[LocalShortcut] 删除本地启动项成功:', id)
 
       // 通知渲染进程刷新指令列表
       this.mainWindow?.webContents.send('apps-changed')
 
       return { success: true }
     } catch (error) {
-      console.error('删除本地启动项失败:', error)
+      console.error('[LocalShortcut] 删除本地启动项失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -400,14 +400,14 @@ export class LocalShortcutsAPI {
       // 保存到数据库
       await databaseAPI.dbPut(LOCAL_SHORTCUTS_KEY, shortcuts)
 
-      console.log('更新本地启动项别名成功:', shortcut.name, '->', shortcut.alias || '(无别名)')
+      console.log('[LocalShortcut] 更新本地启动项别名成功:', shortcut.name, '->', shortcut.alias || '(无别名)')
 
       // 通知渲染进程刷新指令列表
       this.mainWindow?.webContents.send('apps-changed')
 
       return { success: true }
     } catch (error) {
-      console.error('更新本地启动项别名失败:', error)
+      console.error('[LocalShortcut] 更新本地启动项别名失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -422,13 +422,13 @@ export class LocalShortcutsAPI {
 
       if (result) {
         // 如果返回非空字符串，表示有错误
-        console.error('打开失败:', result)
+        console.error('[LocalShortcut] 打开失败:', result)
         return { success: false, error: result }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('打开本地启动项失败:', error)
+      console.error('[LocalShortcut] 打开本地启动项失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }

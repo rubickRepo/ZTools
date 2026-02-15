@@ -28,7 +28,7 @@ export class PluginWindowAPI {
       ) => {
         const pluginInfo = this.pluginManager.getPluginInfoByWebContents(event.sender)
         if (!pluginInfo) {
-          console.error('创建窗口失败: 未找到插件信息')
+          console.error('[PluginWindow] 创建窗口失败: 未找到插件信息')
           event.returnValue = null
           return
         }
@@ -91,12 +91,12 @@ export class PluginWindowAPI {
         const targetWebContents = webContents.fromId(webContentsId)
         if (targetWebContents && !targetWebContents.isDestroyed()) {
           targetWebContents.send(channel, ...args)
-          console.log(`转发消息: ${channel} -> webContentsId: ${webContentsId}`)
+          console.log(`[PluginWindow] 转发消息: ${channel} -> webContentsId: ${webContentsId}`)
         } else {
-          console.warn(`目标 webContents 不存在或已销毁: ${webContentsId}`)
+          console.warn(`[PluginWindow] 目标 webContents 不存在或已销毁: ${webContentsId}`)
         }
       } catch (error) {
-        console.error('转发消息失败:', error)
+        console.error('[PluginWindow] 转发消息失败:', error)
       }
     })
 
@@ -106,7 +106,7 @@ export class PluginWindowAPI {
         const windowType = this.getWindowType(event.sender)
         event.returnValue = windowType
       } catch (error) {
-        console.error('get-window-type error:', error)
+        console.error('[PluginWindow] get-window-type error:', error)
         event.returnValue = 'main' // 默认返回 main
       }
     })

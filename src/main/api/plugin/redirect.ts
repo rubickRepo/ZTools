@@ -52,22 +52,22 @@ export class PluginRedirectAPI {
   }
 
   private handleRedirect(label: string | [string, string], payload?: any): boolean {
-    console.log('收到插件跳转请求:', { label, payload })
+    console.log('[Redirect] 收到插件跳转请求:', { label, payload })
     try {
       this.processRedirect(label, payload)
       return true
     } catch (error) {
-      console.error('处理插件跳转失败:', error)
+      console.error('[Redirect] 处理插件跳转失败:', error)
       return false
     }
   }
 
   private async processRedirect(label: string | [string, string], payload?: any): Promise<void> {
-    // console.log('processRedirect', label, payload)
+    // console.log('[Redirect] processRedirect', label, payload)
 
     // 检查 payload 类型：只支持字符串类型（用于 regex 或 over 类型的匹配指令）
     if (payload !== undefined && payload !== null && typeof payload !== 'string') {
-      console.log('暂不支持非字符串类型的 payload:', typeof payload, payload)
+      console.log('[Redirect] 暂不支持非字符串类型的 payload:', typeof payload, payload)
       return
     }
 
@@ -158,12 +158,12 @@ export class PluginRedirectAPI {
           return
         }
 
-        console.log('找到多个匹配:', matches)
+        console.log('[Redirect] 找到多个匹配:', matches)
 
         if (matches.length === 1) {
           // 只有一个匹配，直接打开
           const { plugin, feature, cmdName: matchCmdName, type } = matches[0]
-          // console.log('重定向启动插件', matches[0])
+          // console.log('[Redirect] 重定向启动插件', matches[0])
           this.launchPlugin(plugin, feature, matchCmdName, {
             payload,
             type: type
@@ -174,7 +174,7 @@ export class PluginRedirectAPI {
         }
       }
     } catch (error: unknown) {
-      console.error('处理跳转逻辑失败:', error)
+      console.error('[Redirect] 处理跳转逻辑失败:', error)
       const errorMsg = error instanceof Error ? error.message : '未知错误'
       this.showNotification(`跳转失败: ${errorMsg}`)
     }
@@ -189,18 +189,18 @@ export class PluginRedirectAPI {
       cmdType: param.type,
       param: param
     }
-    console.log('跳转可以直接打开插件:', launchOptions)
+    console.log('[Redirect] 跳转可以直接打开插件:', launchOptions)
 
     // 发送 ipc-launch 到渲染进程
     this.mainWindow?.webContents.send('ipc-launch', launchOptions)
   }
 
   private redirectSearch(cmdName: string, payload: any): void {
-    console.log('跳转到搜索页:', { cmdName, payload })
+    console.log('[Redirect] 跳转到搜索页:', { cmdName, payload })
 
     // 先返回主页面
     if (this.pluginManager?.getCurrentPluginPath() !== null) {
-      console.log('检测到插件正在显示，先隐藏插件并返回搜索页')
+      console.log('[Redirect] 检测到插件正在显示，先隐藏插件并返回搜索页')
       this.pluginManager.hidePluginView()
       // 通知渲染进程返回搜索页面
       windowManager.notifyBackToSearch()

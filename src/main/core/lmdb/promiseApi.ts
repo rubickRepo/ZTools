@@ -21,7 +21,7 @@ export class PromiseApi {
           const result = this.syncApi.put(doc)
           resolve(result)
         } catch (e) {
-          console.error('put error:', e)
+          console.error('[LMDB] put error:', e)
           reject(e)
         }
       })

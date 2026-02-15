@@ -19,14 +19,14 @@ export class PluginClipboardAPI {
         clipboard.writeText(text)
         event.returnValue = true
       } catch (error) {
-        console.error('复制文本失败:', error)
+        console.error('[PluginClipboard] 复制文本失败:', error)
         event.returnValue = false
       }
     })
 
     // 复制图片到剪贴板
     ipcMain.on('copy-image', (event, image: string | Buffer | Uint8Array) => {
-      console.log('复制图片', image)
+      console.log('[PluginClipboard] 复制图片', image)
       try {
         let nativeImg
 
@@ -53,7 +53,7 @@ export class PluginClipboardAPI {
         clipboard.writeImage(nativeImg)
         event.returnValue = true
       } catch (error) {
-        console.error('复制图片失败:', error)
+        console.error('[PluginClipboard] 复制图片失败:', error)
         event.returnValue = false
       }
     })
@@ -75,7 +75,7 @@ export class PluginClipboardAPI {
 
         event.returnValue = true
       } catch (error) {
-        console.error('复制文件失败:', error)
+        console.error('[PluginClipboard] 复制文件失败:', error)
         event.returnValue = false
       }
     })

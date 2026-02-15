@@ -83,7 +83,7 @@ class PluginAiAPI {
         const result = await this.callAI(option, requestId, event.sender)
         return result
       } catch (error: unknown) {
-        console.error('AI 调用失败:', error)
+        console.error('[AI] AI 调用失败:', error)
         // 确保失败时重置状态
         this.notifyAiStatus('idle', event.sender)
         return {
@@ -108,7 +108,7 @@ class PluginAiAPI {
 
         return { success: true }
       } catch (error: unknown) {
-        console.error('AI 流式调用失败:', error)
+        console.error('[AI] AI 流式调用失败:', error)
         // 确保失败时重置状态
         this.notifyAiStatus('idle', event.sender)
         return {
@@ -124,7 +124,7 @@ class PluginAiAPI {
         this.abortAICall(requestId)
         return { success: true }
       } catch (error: unknown) {
-        console.error('中止 AI 调用失败:', error)
+        console.error('[AI] 中止 AI 调用失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -138,7 +138,7 @@ class PluginAiAPI {
         const models = await this.getAllAiModels()
         return { success: true, data: models }
       } catch (error: unknown) {
-        console.error('获取 AI 模型列表失败:', error)
+        console.error('[AI] 获取 AI 模型列表失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -168,7 +168,7 @@ class PluginAiAPI {
 
         return { success: true, data: result }
       } catch (error: unknown) {
-        console.error('调用插件函数失败:', error)
+        console.error('[AI] 调用插件函数失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -189,7 +189,7 @@ class PluginAiAPI {
     // 通过 pluginManager 获取插件信息
     const pluginInfo = this.pluginManager.getPluginInfoByWebContents(webContents)
     if (!pluginInfo) {
-      console.warn('无法获取插件信息，无法发送 AI 状态通知')
+      console.warn('[AI] 无法获取插件信息，无法发送 AI 状态通知')
       return
     }
 
@@ -537,7 +537,7 @@ class PluginAiAPI {
               }
             }
           } catch (error) {
-            console.error('解析流式数据失败:', error)
+            console.error('[AI] 解析流式数据失败:', error)
           }
         }
       }

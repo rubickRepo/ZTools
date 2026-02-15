@@ -59,7 +59,7 @@ export class PluginDialogAPI {
         }
         event.returnValue = result
       } catch (error) {
-        console.error('获取系统路径失败:', name, error)
+        console.error('[PluginDialog] 获取系统路径失败:', name, error)
         event.returnValue = ''
       }
     })
@@ -78,7 +78,7 @@ export class PluginDialogAPI {
         const result = dialog.showSaveDialogSync(targetWindow, options)
         event.returnValue = result
       } catch (error) {
-        console.error('显示文件保存对话框失败:', error)
+        console.error('[PluginDialog] 显示文件保存对话框失败:', error)
         event.returnValue = undefined
       }
     })
@@ -97,7 +97,7 @@ export class PluginDialogAPI {
         const result = dialog.showOpenDialogSync(targetWindow, options)
         event.returnValue = result || []
       } catch (error) {
-        console.error('显示文件打开对话框失败:', error)
+        console.error('[PluginDialog] 显示文件打开对话框失败:', error)
         event.returnValue = []
       }
     })

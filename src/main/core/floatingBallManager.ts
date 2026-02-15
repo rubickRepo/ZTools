@@ -44,9 +44,9 @@ class FloatingBallManager {
         }
       }
 
-      console.log('悬浮球配置已加载, enabled:', this.enabled)
+      console.log('[FloatingBall] 悬浮球配置已加载, enabled:', this.enabled)
     } catch (error) {
-      console.error('加载悬浮球配置失败:', error)
+      console.error('[FloatingBall] 加载悬浮球配置失败:', error)
     }
   }
 
@@ -164,7 +164,7 @@ class FloatingBallManager {
       }
     })
 
-    console.log('悬浮球窗口已创建')
+    console.log('[FloatingBall] 悬浮球窗口已创建')
   }
 
   /**
@@ -199,7 +199,7 @@ class FloatingBallManager {
     setTimeout(() => {
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('floating-ball-files', files)
-        console.log('悬浮球文件拖放:', files.length, '个文件')
+        console.log('[FloatingBall] 悬浮球文件拖放:', files.length, '个文件')
       }
     }, 500)
   }
@@ -216,9 +216,9 @@ class FloatingBallManager {
       const data = (await databaseAPI.dbGet('settings-general')) || {}
       data.floatingBallPosition = { x, y }
       await databaseAPI.dbPut('settings-general', data)
-      console.log('悬浮球位置已保存:', { x, y })
+      console.log('[FloatingBall] 悬浮球位置已保存:', { x, y })
     } catch (error) {
-      console.error('保存悬浮球位置失败:', error)
+      console.error('[FloatingBall] 保存悬浮球位置失败:', error)
     }
   }
 
@@ -264,9 +264,9 @@ class FloatingBallManager {
       const data = (await databaseAPI.dbGet('settings-general')) || {}
       data.floatingBallEnabled = enabled
       await databaseAPI.dbPut('settings-general', data)
-      console.log('悬浮球已', enabled ? '启用' : '禁用')
+      console.log('[FloatingBall] 悬浮球已', enabled ? '启用' : '禁用')
     } catch (error) {
-      console.error('保存悬浮球设置失败:', error)
+      console.error('[FloatingBall] 保存悬浮球设置失败:', error)
     }
 
     return { success: true }
@@ -280,7 +280,7 @@ class FloatingBallManager {
       this.enabled = false // 先标记为禁用，避免 close 事件 preventDefault
       this.ballWindow.destroy()
       this.ballWindow = null
-      console.log('悬浮球窗口已销毁')
+      console.log('[FloatingBall] 悬浮球窗口已销毁')
     }
   }
 

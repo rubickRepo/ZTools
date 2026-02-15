@@ -12,7 +12,7 @@ const lmdbInstance = new LmdbDatabase({
   maxDbs: 3 // main, meta, attachment
 })
 
-console.log('LMDB database created successfully')
+console.log('[LMDB] LMDB database created successfully')
 
 // 导出单例实例
 export default lmdbInstance
@@ -23,9 +23,9 @@ export default lmdbInstance
 export function closeLmdb(): void {
   try {
     lmdbInstance.close()
-    console.log('LMDB database closed successfully')
+    console.log('[LMDB] LMDB database closed successfully')
   } catch (e) {
-    console.error('Error closing LMDB:', e)
+    console.error('[LMDB] Error closing LMDB:', e)
   }
 }
 

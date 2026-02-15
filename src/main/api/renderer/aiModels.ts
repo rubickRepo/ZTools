@@ -37,7 +37,7 @@ class AiModelsAPI {
         const models = await this.getAllModels()
         return { success: true, data: models }
       } catch (error: unknown) {
-        console.error('获取 AI 模型列表失败:', error)
+        console.error('[AIModels] 获取 AI 模型列表失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -51,7 +51,7 @@ class AiModelsAPI {
         const result = await this.addModel(model)
         return result
       } catch (error: unknown) {
-        console.error('添加 AI 模型失败:', error)
+        console.error('[AIModels] 添加 AI 模型失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -65,7 +65,7 @@ class AiModelsAPI {
         const result = await this.updateModel(model)
         return result
       } catch (error: unknown) {
-        console.error('更新 AI 模型失败:', error)
+        console.error('[AIModels] 更新 AI 模型失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -79,7 +79,7 @@ class AiModelsAPI {
         const result = await this.deleteModel(modelId)
         return result
       } catch (error: unknown) {
-        console.error('删除 AI 模型失败:', error)
+        console.error('[AIModels] 删除 AI 模型失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'

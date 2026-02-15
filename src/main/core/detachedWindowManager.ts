@@ -44,10 +44,10 @@ class DetachedWindowManager {
       const settings = await lmdbInstance.promises.get('ZTOOLS/settings-general')
       const material = (settings?.data?.windowMaterial as 'mica' | 'acrylic' | 'none') || 'none'
 
-      console.log('分离窗口应用材质:', material)
+      console.log('[DetachedWindow] 分离窗口应用材质:', material)
       applyWindowMaterial(win, material)
     } catch (error) {
-      console.error('读取窗口材质配置失败，使用默认值 (mica):', error)
+      console.error('[DetachedWindow] 读取窗口材质配置失败，使用默认值 (mica):', error)
       applyWindowMaterial(win, 'none')
     }
   }
@@ -88,7 +88,7 @@ class DetachedWindowManager {
         height: normalizedHeight
       })
     } catch (error) {
-      console.error('保存分离窗口尺寸失败:', error)
+      console.error('[DetachedWindow] 保存分离窗口尺寸失败:', error)
     }
   }
 
@@ -108,7 +108,7 @@ class DetachedWindowManager {
 
     const timer = setTimeout(() => {
       this.persistWindowSize(pluginName, width, viewHeight).catch((error) => {
-        console.error('保存分离窗口尺寸时出错:', error)
+        console.error('[DetachedWindow] 保存分离窗口尺寸时出错:', error)
       })
       this.resizeSaveTimers.delete(windowId)
     }, 300)
@@ -191,7 +191,7 @@ class DetachedWindowManager {
 
       // 标题栏加载完成后发送插件信息，并添加插件视图
       win.webContents.on('did-finish-load', () => {
-        console.log('标题栏加载完成，发送插件信息', pluginName, options)
+        console.log('[DetachedWindow] 标题栏加载完成，发送插件信息', pluginName, options)
         win.webContents.send('init-titlebar', {
           pluginName,
           pluginLogo: options.logo,
@@ -268,7 +268,7 @@ class DetachedWindowManager {
         if (!pluginView.webContents.isDestroyed()) {
           pluginView.webContents.close()
         }
-        console.log(`分离窗口已关闭: ${pluginName}`)
+        console.log(`[DetachedWindow] 分离窗口已关闭: ${pluginName}`)
         // 更新 Dock 图标显示状态
         this.updateDockVisibility()
       })
@@ -296,10 +296,10 @@ class DetachedWindowManager {
       // 更新 Dock 图标显示状态
       this.updateDockVisibility()
 
-      console.log(`创建分离窗口成功: ${pluginName}`)
+      console.log(`[DetachedWindow] 创建分离窗口成功: ${pluginName}`)
       return win
     } catch (error) {
-      console.error('创建分离窗口失败:', error)
+      console.error('[DetachedWindow] 创建分离窗口失败:', error)
       return null
     }
   }
@@ -452,7 +452,7 @@ class DetachedWindowManager {
       this.detachedWindowMap.delete(windowId)
     }
 
-    console.log(`已关闭插件 ${pluginPath} 的 ${windowIdsToClose.length} 个分离窗口`)
+    console.log(`[DetachedWindow] 已关闭插件 ${pluginPath} 的 ${windowIdsToClose.length} 个分离窗口`)
   }
 
   /**
@@ -517,12 +517,12 @@ class DetachedWindowManager {
       try {
         // 更新主进程窗口材质
         applyWindowMaterial(info.window, material)
-        console.log(`✅ 分离窗口 ${windowId} 材质已更新为 ${material}`)
+        console.log(`[DetachedWindow] 分离窗口 ${windowId} 材质已更新为 ${material}`)
 
         // 通知渲染进程更新样式
         info.window.webContents.send('update-window-material', material)
       } catch (error) {
-        console.error(`❌ 更新分离窗口 ${windowId} 材质失败:`, error)
+        console.error(`[DetachedWindow] 更新分离窗口 ${windowId} 材质失败:`, error)
       }
     }
   }
@@ -554,7 +554,7 @@ class DetachedWindowManager {
           info.window.webContents.send(channel, ...args)
         }
       } catch (error) {
-        console.error(`❌ 广播消息到分离窗口 ${windowId} 失败:`, error)
+        console.error(`[DetachedWindow] 广播消息到分离窗口 ${windowId} 失败:`, error)
       }
     }
   }

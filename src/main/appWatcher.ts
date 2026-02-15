@@ -83,7 +83,7 @@ class AppWatcher {
     // 根据平台设置监听目录
     const watchPaths = this.getWatchPaths()
 
-    console.log('开始监听应用目录变化:', watchPaths)
+    console.log('[AppWatcher] 开始监听应用目录变化:', watchPaths)
 
     // 创建监听器
     this.watcher = chokidar.watch(watchPaths, {
@@ -113,7 +113,7 @@ class AppWatcher {
       // Windows: 监听 .lnk 文件
       this.watcher.on('add', (filePath: string) => {
         if (filePath.endsWith('.lnk')) {
-          console.log('检测到新快捷方式:', filePath)
+          console.log('[AppWatcher] 检测到新快捷方式:', filePath)
           this.notifyChange('add', filePath)
         }
       })
@@ -123,7 +123,7 @@ class AppWatcher {
       // macOS: 监听 .app 目录
       this.watcher.on('addDir', (filePath: string) => {
         if (filePath.endsWith('.app')) {
-          console.log('检测到新应用:', filePath)
+          console.log('[AppWatcher] 检测到新应用:', filePath)
           this.notifyChange('add', filePath)
         }
       })
@@ -134,7 +134,7 @@ class AppWatcher {
       // Windows: 监听 .lnk 文件删除
       this.watcher.on('unlink', (filePath: string) => {
         if (filePath.endsWith('.lnk')) {
-          console.log('检测到快捷方式删除:', filePath)
+          console.log('[AppWatcher] 检测到快捷方式删除:', filePath)
           this.notifyChange('remove', filePath)
         }
       })
@@ -144,7 +144,7 @@ class AppWatcher {
       // macOS: 监听 .app 目录删除
       this.watcher.on('unlinkDir', (filePath: string) => {
         if (filePath.endsWith('.app')) {
-          console.log('检测到应用删除:', filePath)
+          console.log('[AppWatcher] 检测到应用删除:', filePath)
           this.notifyChange('remove', filePath)
         }
       })
@@ -152,12 +152,12 @@ class AppWatcher {
 
     // 监听错误
     this.watcher.on('error', (error: unknown) => {
-      console.error('应用目录监听错误:', error)
+      console.error('[AppWatcher] 应用目录监听错误:', error)
     })
 
     // 监听准备完成
     this.watcher.on('ready', () => {
-      console.log('应用目录监听器已就绪')
+      console.log('[AppWatcher] 应用目录监听器已就绪')
     })
   }
 
@@ -170,7 +170,7 @@ class AppWatcher {
 
     // 设置新的定时器
     this.debounceTimer = setTimeout(async () => {
-      console.log(`检测到应用变化: ${type} ${filePath}`)
+      console.log(`[AppWatcher] 检测到应用变化: ${type} ${filePath}`)
 
       // 刷新应用缓存
       await appsAPI.refreshAppsCache()
@@ -182,7 +182,7 @@ class AppWatcher {
   // 停止监听
   public stop(): void {
     if (this.watcher) {
-      console.log('停止监听应用目录')
+      console.log('[AppWatcher] 停止监听应用目录')
       this.watcher.close()
       this.watcher = null
     }

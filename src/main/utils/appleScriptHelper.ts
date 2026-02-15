@@ -20,7 +20,7 @@ class AppleScriptHelper {
       const { stdout } = await execAsync(`osascript -e '${escapedScript}'`)
       return stdout.trim()
     } catch (error) {
-      console.error('执行 AppleScript 失败:', error)
+      console.error('[AppleScript] 执行 AppleScript 失败:', error)
       throw error
     }
   }
@@ -51,7 +51,7 @@ class AppleScriptHelper {
       const result = await this.execute(script)
       return result || null
     } catch (error) {
-      console.error('获取访达路径失败:', error)
+      console.error('[AppleScript] 获取访达路径失败:', error)
       return null
     }
   }
@@ -91,7 +91,7 @@ class AppleScriptHelper {
 
       return null
     } catch (error) {
-      console.error('获取当前激活应用失败:', error)
+      console.error('[AppleScript] 获取当前激活应用失败:', error)
       return null
     }
   }
@@ -111,7 +111,7 @@ class AppleScriptHelper {
       const result = await this.execute(script)
       return result || null
     } catch (error) {
-      console.error('获取当前激活应用名称失败:', error)
+      console.error('[AppleScript] 获取当前激活应用名称失败:', error)
       return null
     }
   }
@@ -131,7 +131,7 @@ class AppleScriptHelper {
       await this.execute(script)
       return true
     } catch (error) {
-      console.error(`激活应用 ${appName} 失败:`, error)
+      console.error(`[AppleScript] 激活应用 ${appName} 失败:`, error)
       return false
     }
   }
@@ -151,7 +151,7 @@ class AppleScriptHelper {
       await this.execute(script)
       return true
     } catch (error) {
-      console.error(`激活应用 ${bundleId} 失败:`, error)
+      console.error(`[AppleScript] 激活应用 ${bundleId} 失败:`, error)
       return false
     }
   }
@@ -171,7 +171,7 @@ class AppleScriptHelper {
       await this.execute(script)
       return true
     } catch (error) {
-      console.error(`激活应用 ${appPath} 失败:`, error)
+      console.error(`[AppleScript] 激活应用 ${appPath} 失败:`, error)
       return false
     }
   }
@@ -194,7 +194,7 @@ class AppleScriptHelper {
       await this.execute(script)
       return true
     } catch (error) {
-      console.error('在终端打开路径失败:', error)
+      console.error('[AppleScript] 在终端打开路径失败:', error)
       return false
     }
   }
@@ -215,7 +215,7 @@ class AppleScriptHelper {
       await this.execute(script)
       return true
     } catch (error) {
-      console.error('显示通知失败:', error)
+      console.error('[AppleScript] 显示通知失败:', error)
       return false
     }
   }
@@ -239,7 +239,7 @@ class AppleScriptHelper {
       }
       return []
     } catch (error) {
-      console.error('获取运行中应用列表失败:', error)
+      console.error('[AppleScript] 获取运行中应用列表失败:', error)
       return []
     }
   }
@@ -260,7 +260,7 @@ class AppleScriptHelper {
       const result = await this.execute(script)
       return result === 'true'
     } catch (error) {
-      console.error(`检查应用 ${appName} 运行状态失败:`, error)
+      console.error(`[AppleScript] 检查应用 ${appName} 运行状态失败:`, error)
       return false
     }
   }
@@ -280,7 +280,7 @@ class AppleScriptHelper {
       await this.execute(script)
       return true
     } catch (error) {
-      console.error(`退出应用 ${appName} 失败:`, error)
+      console.error(`[AppleScript] 退出应用 ${appName} 失败:`, error)
       return false
     }
   }
@@ -300,7 +300,7 @@ class AppleScriptHelper {
       await this.execute(script)
       return true
     } catch (error) {
-      console.error(`隐藏应用 ${appName} 失败:`, error)
+      console.error(`[AppleScript] 隐藏应用 ${appName} 失败:`, error)
       return false
     }
   }
@@ -317,10 +317,10 @@ class AppleScriptHelper {
         end tell
       `
       await this.execute(script)
-      console.log('已执行粘贴操作 (Command+V)')
+      console.log('[AppleScript] 已执行粘贴操作 (Command+V)')
       return true
     } catch (error) {
-      console.error('执行粘贴操作失败:', error)
+      console.error('[AppleScript] 执行粘贴操作失败:', error)
       return false
     }
   }

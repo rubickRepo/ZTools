@@ -62,7 +62,7 @@ export class PluginsAPI {
           )
           return { success: true, result }
         } catch (error: unknown) {
-          console.error('调用无界面插件失败:', error)
+          console.error('[Plugins] 调用无界面插件失败:', error)
           return { success: false, error: error instanceof Error ? error.message : '未知错误' }
         }
       }
@@ -104,7 +104,7 @@ export class PluginsAPI {
 
       return plugins
     } catch (error) {
-      console.error('获取插件列表失败:', error)
+      console.error('[Plugins] 获取插件列表失败:', error)
       return []
     }
   }
@@ -169,7 +169,7 @@ export class PluginsAPI {
       const zipPath = result.filePaths[0]
       return await this._installPluginFromZip(zipPath)
     } catch (error: unknown) {
-      console.error('导入插件失败:', error)
+      console.error('[Plugins] 导入插件失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -248,10 +248,10 @@ export class PluginsAPI {
       await databaseAPI.dbPut('plugins', plugins)
 
       // 输出新增的指令
-      console.log('\n=== 新增插件指令 ===')
+      console.log('[Plugins] \n=== 新增插件指令 ===')
       console.log(`插件名称: ${pluginConfig.name}`)
       console.log(`插件版本: ${pluginConfig.version}`)
-      console.log('新增指令列表:')
+      console.log('[Plugins] 新增指令列表:')
       pluginConfig.features.forEach((feature: any, index: number) => {
         console.log(`  [${index + 1}] ${feature.code} - ${feature.explain || '无说明'}`)
 
@@ -272,12 +272,12 @@ export class PluginsAPI {
 
         console.log(`      关键词: ${formattedCmds}`)
       })
-      console.log('==================\n')
+      console.log('[Plugins] ==================\n')
 
       this.mainWindow?.webContents.send('plugins-changed')
       return { success: true, plugin: pluginInfo }
     } catch (error: unknown) {
-      console.error('安装插件失败:', error)
+      console.error('[Plugins] 安装插件失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '安装失败' }
     }
   }
@@ -349,11 +349,11 @@ export class PluginsAPI {
       await databaseAPI.dbPut('plugins', plugins)
 
       // 输出新增的指令
-      console.log('\n=== 新增开发中插件指令 ===')
+      console.log('[Plugins] \n=== 新增开发中插件指令 ===')
       console.log(`插件名称: ${pluginConfig.name}`)
       console.log(`插件版本: ${pluginConfig.version}`)
       console.log(`开发模式: ${pluginConfig.development?.main || '无'}`)
-      console.log('新增指令列表:')
+      console.log('[Plugins] 新增指令列表:')
       pluginConfig.features.forEach((feature: any, index: number) => {
         console.log(`  [${index + 1}] ${feature.code} - ${feature.explain || '无说明'}`)
 
@@ -374,12 +374,12 @@ export class PluginsAPI {
 
         console.log(`      关键词: ${formattedCmds}`)
       })
-      console.log('=========================\n')
+      console.log('[Plugins] =========================\n')
 
       this.mainWindow?.webContents.send('plugins-changed')
       return { success: true }
     } catch (error: unknown) {
-      console.error('添加开发中插件失败:', error)
+      console.error('[Plugins] 添加开发中插件失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -415,17 +415,17 @@ export class PluginsAPI {
       if (!pluginInfo.isDevelopment) {
         try {
           await fs.rm(pluginPath, { recursive: true, force: true })
-          console.log('已删除插件目录:', pluginPath)
+          console.log('[Plugins] 已删除插件目录:', pluginPath)
         } catch (error) {
-          console.error('删除插件目录失败:', error)
+          console.error('[Plugins] 删除插件目录失败:', error)
         }
       } else {
-        console.log('开发中插件，保留目录:', pluginPath)
+        console.log('[Plugins] 开发中插件，保留目录:', pluginPath)
       }
 
       return { success: true }
     } catch (error: unknown) {
-      console.error('删除插件失败:', error)
+      console.error('[Plugins] 删除插件失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -449,7 +449,7 @@ export class PluginsAPI {
       try {
         await fs.access(pluginJsonPath)
       } catch (error) {
-        console.log('文件不存在', error)
+        console.log('[Plugins] 文件不存在', error)
         return { success: false, error: 'plugin.json 文件不存在' }
       }
 
@@ -471,10 +471,10 @@ export class PluginsAPI {
 
       await databaseAPI.dbPut('plugins', plugins)
       this.mainWindow?.webContents.send('plugins-changed')
-      console.log('插件重载成功:', pluginPath)
+      console.log('[Plugins] 插件重载成功:', pluginPath)
       return { success: true }
     } catch (error: unknown) {
-      console.error('重载插件失败:', error)
+      console.error('[Plugins] 重载插件失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -490,7 +490,7 @@ export class PluginsAPI {
   // 终止插件
   private killPlugin(pluginPath: string): { success: boolean; error?: string } {
     try {
-      console.log('终止插件:', pluginPath)
+      console.log('[Plugins] 终止插件:', pluginPath)
       if (this.pluginManager) {
         const result = this.pluginManager.killPlugin(pluginPath)
         if (result) {
@@ -501,7 +501,7 @@ export class PluginsAPI {
       }
       return { success: false, error: '功能不可用' }
     } catch (error: unknown) {
-      console.error('终止插件失败:', error)
+      console.error('[Plugins] 终止插件失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -509,7 +509,7 @@ export class PluginsAPI {
   // 终止插件并返回搜索页面
   private killPluginAndReturn(pluginPath: string): { success: boolean; error?: string } {
     try {
-      console.log('终止插件并返回搜索页面:', pluginPath)
+      console.log('[Plugins] 终止插件并返回搜索页面:', pluginPath)
       if (this.pluginManager) {
         const result = this.pluginManager.killPlugin(pluginPath)
         if (result) {
@@ -522,7 +522,7 @@ export class PluginsAPI {
       }
       return { success: false, error: '功能不可用' }
     } catch (error: unknown) {
-      console.error('终止插件并返回搜索页面失败:', error)
+      console.error('[Plugins] 终止插件并返回搜索页面失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -543,7 +543,7 @@ export class PluginsAPI {
       const pluginsJsonUrl = `${baseUrl}/plugins.json`
       const latestVersionUrl = `${baseUrl}/latest`
 
-      console.log('从插件市场获取列表...', baseUrl)
+      console.log('[Plugins] 从插件市场获取列表...', baseUrl)
 
       // 生成时间戳，用于禁用缓存
       const timestamp = Date.now()
@@ -556,7 +556,7 @@ export class PluginsAPI {
         latestVersion = versionResponse.data.trim()
         console.log(`发现最新插件列表版本: ${latestVersion}`)
       } catch (error) {
-        console.warn('获取版本号失败，将强制更新:', error)
+        console.warn('[Plugins] 获取版本号失败，将强制更新:', error)
       }
 
       // 检查缓存
@@ -564,12 +564,12 @@ export class PluginsAPI {
       const cachedData = await databaseAPI.dbGet('plugin-market-data')
 
       if (cachedVersion === latestVersion && cachedData && latestVersion) {
-        console.log('使用本地缓存的插件市场列表')
+        console.log('[Plugins] 使用本地缓存的插件市场列表')
         return { success: true, data: cachedData }
       }
 
       // 下载 plugins.json（添加时间戳，httpGet 已默认禁用缓存）
-      console.log('下载新版本插件列表...')
+      console.log('[Plugins] 下载新版本插件列表...')
       const response = await httpGet(`${pluginsJsonUrl}?t=${timestamp}`)
       const json = typeof response.data === 'string' ? JSON.parse(response.data) : response.data
 
@@ -579,11 +579,11 @@ export class PluginsAPI {
 
       return { success: true, data: json }
     } catch (error: unknown) {
-      console.error('获取插件市场列表失败:', error)
+      console.error('[Plugins] 获取插件市场列表失败:', error)
       try {
         const cachedData = await databaseAPI.dbGet('plugin-market-data')
         if (cachedData) {
-          console.log('获取失败，降级使用本地缓存')
+          console.log('[Plugins] 获取失败，降级使用本地缓存')
           return { success: true, data: cachedData }
         }
       } catch {
@@ -596,13 +596,13 @@ export class PluginsAPI {
   // 从市场安装插件
   private async installPluginFromMarket(plugin: any): Promise<any> {
     try {
-      console.log('开始从市场安装插件:', plugin.name)
+      console.log('[Plugins] 开始从市场安装插件:', plugin.name)
       const downloadUrl = plugin.downloadUrl
       if (!downloadUrl) {
         return { success: false, error: '无效的下载链接' }
       }
 
-      console.log('插件下载链接:', downloadUrl)
+      console.log('[Plugins] 插件下载链接:', downloadUrl)
 
       const tempDir = path.join(app.getPath('temp'), 'ztools-plugin-download')
       await fs.mkdir(tempDir, { recursive: true })
@@ -622,19 +622,19 @@ export class PluginsAPI {
         }
       }
 
-      console.log('插件下载完成:', tempFilePath)
+      console.log('[Plugins] 插件下载完成:', tempFilePath)
       const result = await this._installPluginFromZip(tempFilePath)
 
       try {
         await fs.unlink(tempFilePath)
         await fs.rm(tempDir, { recursive: true, force: true })
       } catch (e) {
-        console.error('清理下载临时文件失败:', e)
+        console.error('[Plugins] 清理下载临时文件失败:', e)
       }
 
       return result
     } catch (error: unknown) {
-      console.error('从市场安装插件失败:', error)
+      console.error('[Plugins] 从市场安装插件失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '安装失败' }
     }
   }
@@ -654,7 +654,7 @@ export class PluginsAPI {
       const name = pluginName || pluginPathOrName
       return await this.getRemotePluginReadme(name)
     } catch (error: unknown) {
-      console.error('读取插件 README 失败:', error)
+      console.error('[Plugins] 读取插件 README 失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '读取失败' }
     }
   }
@@ -721,7 +721,7 @@ export class PluginsAPI {
       // 所有文件名都不存在
       return { success: false, error: '暂无详情' }
     } catch (error: unknown) {
-      console.error('读取本地插件 README 失败:', error)
+      console.error('[Plugins] 读取本地插件 README 失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '读取失败' }
     }
   }
@@ -734,7 +734,7 @@ export class PluginsAPI {
       const baseUrl = `https://raw.githubusercontent.com/ZToolsCenter/ZTools-plugins/main/plugins/${pluginName}`
       const readmeUrl = `${baseUrl}/README.md`
 
-      console.log('从远程加载 README:', readmeUrl)
+      console.log('[Plugins] 从远程加载 README:', readmeUrl)
 
       // 使用 fetch 获取 README 内容
       const response = await fetch(readmeUrl)
@@ -776,7 +776,7 @@ export class PluginsAPI {
 
       return { success: true, content }
     } catch (error: unknown) {
-      console.error('从远程加载插件 README 失败:', error)
+      console.error('[Plugins] 从远程加载插件 README 失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '加载失败' }
     }
   }
@@ -804,7 +804,7 @@ export class PluginsAPI {
 
       return { success: true, data: formattedData }
     } catch (error: unknown) {
-      console.error('获取插件数据失败:', error)
+      console.error('[Plugins] 获取插件数据失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '获取失败' }
     }
   }

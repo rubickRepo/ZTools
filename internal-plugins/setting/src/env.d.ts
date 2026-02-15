@@ -291,6 +291,33 @@ declare global {
         // 固定/取消固定指令到搜索窗口
         pinApp: (app: any) => Promise<void>
         unpinApp: (appPath: string, featureCode?: string, name?: string) => Promise<void>
+
+        // 调试日志
+        logEnable: () => Promise<{ success: boolean }>
+        logDisable: () => Promise<{ success: boolean }>
+        logGetBuffer: () => Promise<
+          Array<{
+            id: number
+            timestamp: number
+            level: string
+            source: string
+            message: string
+          }>
+        >
+        logIsEnabled: () => Promise<boolean>
+        logSubscribe: () => Promise<{ success: boolean }>
+        onLogEntries: (
+          callback: (
+            entries: Array<{
+              id: number
+              timestamp: number
+              level: string
+              source: string
+              message: string
+            }>
+          ) => void
+        ) => void
+        offLogEntries: (callback: (...args: any[]) => void) => void
       }
     }
   }

@@ -58,7 +58,7 @@ export class PluginInputAPI {
       }
       return { success: false, error: '功能不可用' }
     } catch (error: unknown) {
-      console.error('发送输入事件失败:', error)
+      console.error('[PluginInput] 发送输入事件失败:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : '未知错误'
@@ -70,7 +70,7 @@ export class PluginInputAPI {
     try {
       return WindowManager.simulateKeyboardTap(key, ...modifiers)
     } catch (error: unknown) {
-      console.error('模拟键盘按键失败:', error)
+      console.error('[PluginInput] 模拟键盘按键失败:', error)
       return false
     }
   }

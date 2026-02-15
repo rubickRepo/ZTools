@@ -51,7 +51,7 @@ export class PluginHttpAPI {
 
         event.returnValue = { success: true }
       } catch (error: unknown) {
-        console.error('设置请求头失败:', error)
+        console.error('[PluginHttp] 设置请求头失败:', error)
         event.returnValue = {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -71,7 +71,7 @@ export class PluginHttpAPI {
         const headers = this.pluginHeaders.get(pluginName) || {}
         event.returnValue = headers
       } catch (error: unknown) {
-        console.error('获取请求头失败:', error)
+        console.error('[PluginHttp] 获取请求头失败:', error)
         event.returnValue = null
       }
     })
@@ -94,7 +94,7 @@ export class PluginHttpAPI {
 
         event.returnValue = { success: true }
       } catch (error: unknown) {
-        console.error('清除请求头失败:', error)
+        console.error('[PluginHttp] 清除请求头失败:', error)
         event.returnValue = {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -131,7 +131,7 @@ export class PluginHttpAPI {
 
       return null
     } catch (error) {
-      console.error('获取插件名称失败:', error)
+      console.error('[PluginHttp] 获取插件名称失败:', error)
       return null
     }
   }
@@ -175,7 +175,7 @@ export class PluginHttpAPI {
 
       return listener
     } catch (error) {
-      console.error('设置请求拦截器失败:', error)
+      console.error('[PluginHttp] 设置请求拦截器失败:', error)
       return null
     }
   }
@@ -198,7 +198,7 @@ export class PluginHttpAPI {
         )
         this.interceptors.delete(pluginName)
       } catch (error) {
-        console.warn('移除请求拦截器失败:', error)
+        console.warn('[PluginHttp] 移除请求拦截器失败:', error)
       }
     }
   }

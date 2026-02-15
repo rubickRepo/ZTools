@@ -77,25 +77,25 @@ export async function executeSystemCommand(
     return { success: false, error: `Unsupported platform: ${platform}` }
   }
 
-  console.log('执行系统命令:', cmd)
+  console.log('[SystemCmd] 执行系统命令:', cmd)
 
   try {
     const { stdout, stderr } = await execAsync(cmd)
-    if (stderr) console.error('系统命令错误输出:', stderr)
-    if (stdout) console.log('系统命令输出:', stdout)
+    if (stderr) console.error('[SystemCmd] 系统命令错误输出:', stderr)
+    if (stdout) console.log('[SystemCmd] 系统命令输出:', stdout)
 
     ctx.mainWindow?.webContents.send('app-launched')
     ctx.mainWindow?.hide()
 
     return { success: true }
   } catch (error) {
-    console.error('执行系统命令失败:', error)
+    console.error('[SystemCmd] 执行系统命令失败:', error)
     return { success: false, error: String(error) }
   }
 }
 
 function handleClear(ctx: SystemCommandContext): any {
-  console.log('执行 Clear 指令：停止所有插件')
+  console.log('[SystemCmd] 执行 Clear 指令：停止所有插件')
   if (ctx.pluginManager) {
     ctx.pluginManager.killAllPlugins()
   }
@@ -109,7 +109,7 @@ async function handleSearch(
   baseUrl: string,
   label: string
 ): Promise<any> {
-  console.log(`执行${label}:`, param)
+  console.log(`[SystemCmd] 执行${label}:`, param)
   if (param?.payload) {
     const query = encodeURIComponent(param.payload)
     await shell.openExternal(`${baseUrl}${query}`)
@@ -121,7 +121,7 @@ async function handleSearch(
 }
 
 async function handleOpenUrl(ctx: SystemCommandContext, param: any): Promise<any> {
-  console.log('打开网址:', param)
+  console.log('[SystemCmd] 打开网址:', param)
   if (param?.payload) {
     let url = param.payload.trim()
     if (!url.match(/^https?:\/\//i)) {
@@ -136,7 +136,7 @@ async function handleOpenUrl(ctx: SystemCommandContext, param: any): Promise<any
 }
 
 function handleWindowInfo(ctx: SystemCommandContext): any {
-  console.log('执行窗口信息')
+  console.log('[SystemCmd] 执行窗口信息')
   const winInfo = windowManager.getPreviousActiveWindow()
 
   ctx.mainWindow?.hide()
@@ -261,7 +261,7 @@ async function handleCopyPath(
   ctx: SystemCommandContext,
   execAsync: (cmd: string) => Promise<{ stdout: string; stderr: string }>
 ): Promise<any> {
-  console.log('执行复制路径')
+  console.log('[SystemCmd] 执行复制路径')
   const previousWindow = windowManager.getPreviousActiveWindow()
 
   if (!previousWindow) {
@@ -282,11 +282,11 @@ async function handleCopyPath(
       const { stdout } = await execAsync(`osascript -e '${script}'`)
       const folderPath = stdout.trim()
       clipboard.writeText(folderPath)
-      console.log('已复制路径:', folderPath)
+      console.log('[SystemCmd] 已复制路径:', folderPath)
       ctx.mainWindow?.hide()
       return { success: true, path: folderPath }
     } catch (error) {
-      console.error('获取 Finder 路径失败:', error)
+      console.error('[SystemCmd] 获取 Finder 路径失败:', error)
       return { success: false, error: String(error) }
     }
   }
@@ -297,7 +297,7 @@ async function handleOpenTerminal(
   ctx: SystemCommandContext,
   execAsync: (cmd: string) => Promise<{ stdout: string; stderr: string }>
 ): Promise<any> {
-  console.log('执行在终端打开')
+  console.log('[SystemCmd] 执行在终端打开')
   const previousWindow = windowManager.getPreviousActiveWindow()
 
   if (!previousWindow) {
@@ -321,11 +321,11 @@ async function handleOpenTerminal(
       end tell
     `
       await execAsync(`osascript -e '${script}'`)
-      console.log('已在终端打开')
+      console.log('[SystemCmd] 已在终端打开')
       ctx.mainWindow?.hide()
       return { success: true }
     } catch (error) {
-      console.error('在终端打开失败:', error)
+      console.error('[SystemCmd] 在终端打开失败:', error)
       return { success: false, error: String(error) }
     }
   }

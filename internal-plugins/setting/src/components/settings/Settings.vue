@@ -54,6 +54,9 @@
 
       <!-- 关于 -->
       <AboutPage v-if="activeMenu === 'about'" />
+
+      <!-- 调试日志 -->
+      <DebugConsole v-if="activeMenu === 'debug'" />
     </div>
   </div>
 </template>
@@ -64,6 +67,7 @@ import Icon from '../common/Icon.vue'
 import AiModels from './AiModels.vue'
 import AllCommands from './AllCommands.vue'
 import DataManagement from './DataManagement.vue'
+import DebugConsole from './DebugConsole.vue'
 import GeneralSettings from './GeneralSettings.vue'
 import GlobalShortcuts from './GlobalShortcuts.vue'
 import LocalLaunch from './LocalLaunch.vue'
@@ -99,6 +103,7 @@ interface MenuItem {
     | 'folder'
     | 'brain'
     | 'info'
+    | 'terminal'
   label: string
 }
 
@@ -113,6 +118,7 @@ const menuItems: MenuItem[] = [
   { id: 'all-commands', icon: 'list', label: '所有指令' },
   { id: 'local-launch', icon: 'folder', label: '本地启动' },
   { id: 'sync', icon: 'cloud', label: 'WebDAV 同步' },
+  { id: 'debug', icon: 'terminal', label: '调试日志' },
   { id: 'about', icon: 'info', label: '关于' }
 ]
 

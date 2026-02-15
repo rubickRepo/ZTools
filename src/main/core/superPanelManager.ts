@@ -68,10 +68,10 @@ class SuperPanelManager {
         if (this.config.enabled) {
           this.startMonitor()
         }
-        console.log('超级面板配置已加载:', this.config)
+        console.log('[SuperPanel] 超级面板配置已加载:', this.config)
       }
     } catch (error) {
-      console.error('加载超级面板配置失败:', error)
+      console.error('[SuperPanel] 加载超级面板配置失败:', error)
     }
   }
 
@@ -92,7 +92,7 @@ class SuperPanelManager {
       this.hideWindow()
     }
 
-    console.log('超级面板配置已更新:', this.config)
+    console.log('[SuperPanel] 超级面板配置已更新:', this.config)
   }
 
   /**
@@ -109,10 +109,10 @@ class SuperPanelManager {
         this.onMouseTrigger()
       })
       console.log(
-        `超级面板鼠标监听已启动: ${this.config.mouseButton}, ${this.config.longPressMs}ms`
+        `[SuperPanel] 超级面板鼠标监听已启动: ${this.config.mouseButton}, ${this.config.longPressMs}ms`
       )
     } catch (error) {
-      console.error('启动超级面板鼠标监听失败:', error)
+      console.error('[SuperPanel] 启动超级面板鼠标监听失败:', error)
     }
   }
 
@@ -122,7 +122,7 @@ class SuperPanelManager {
   private stopMonitor(): void {
     if (MouseMonitor.isMonitoring) {
       MouseMonitor.stop()
-      console.log('超级面板鼠标监听已停止')
+      console.log('[SuperPanel] 超级面板鼠标监听已停止')
     }
   }
 
@@ -159,7 +159,7 @@ class SuperPanelManager {
               }
             }
           } catch (error) {
-            console.error('[超级面板] 读取文件剪贴板失败:', error)
+            console.error('[SuperPanel] 读取文件剪贴板失败:', error)
           }
         }
       } else if (os.platform() === 'win32') {
@@ -169,7 +169,7 @@ class SuperPanelManager {
             return { type: 'file', files }
           }
         } catch (error) {
-          console.error('[超级面板] 读取文件剪贴板失败:', error)
+          console.error('[SuperPanel] 读取文件剪贴板失败:', error)
         }
       }
 
@@ -189,7 +189,7 @@ class SuperPanelManager {
 
       return null
     } catch (error) {
-      console.error('[超级面板] 读取剪贴板失败:', error)
+      console.error('[SuperPanel] 读取剪贴板失败:', error)
       return null
     }
   }
@@ -251,7 +251,7 @@ class SuperPanelManager {
         this.loadPinnedCommands()
       }
     } catch (error) {
-      console.error('超级面板触发失败:', error)
+      console.error('[SuperPanel] 超级面板触发失败:', error)
     }
   }
 
@@ -394,7 +394,7 @@ class SuperPanelManager {
       // 通知超级面板渲染进程更新样式
       win.webContents.send('update-window-material', material)
     } catch (error) {
-      console.error('[超级面板] 应用窗口材质失败:', error)
+      console.error('[SuperPanel] 应用窗口材质失败:', error)
     }
   }
 
@@ -459,7 +459,7 @@ class SuperPanelManager {
         commands: pinnedCommands
       })
     } catch (error) {
-      console.error('加载超级面板固定列表失败:', error)
+      console.error('[SuperPanel] 加载超级面板固定列表失败:', error)
       this.sendToSuperPanel('super-panel-data', {
         type: 'pinned',
         commands: []
@@ -516,7 +516,7 @@ class SuperPanelManager {
 
         return { success: true }
       } catch (error) {
-        console.error('超级面板启动指令失败:', error)
+        console.error('[SuperPanel] 超级面板启动指令失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -547,7 +547,7 @@ class SuperPanelManager {
         await databaseAPI.dbPut('super-panel-pinned', commands)
         return { success: true }
       } catch (error) {
-        console.error('更新超级面板固定列表顺序失败:', error)
+        console.error('[SuperPanel] 更新超级面板固定列表顺序失败:', error)
         return {
           success: false,
           error: error instanceof Error ? error.message : '未知错误'
@@ -560,7 +560,7 @@ class SuperPanelManager {
       'super-panel:unpin-command',
       async (_event, path: string, featureCode?: string) => {
         try {
-          console.log('[超级面板] 收到取消固定请求:', { path, featureCode })
+          console.log('[SuperPanel] 收到取消固定请求:', { path, featureCode })
           let pinnedCommands = await databaseAPI.dbGet('super-panel-pinned')
           if (!Array.isArray(pinnedCommands)) {
             pinnedCommands = []
@@ -574,16 +574,16 @@ class SuperPanelManager {
             return cmd.path !== path
           })
 
-          console.log('[超级面板] 更新后的固定列表:', pinnedCommands.length, '项')
+          console.log('[SuperPanel] 更新后的固定列表:', pinnedCommands.length, '项')
           await databaseAPI.dbPut('super-panel-pinned', pinnedCommands)
 
           // 重新加载固定列表
           this.loadPinnedCommands()
-          console.log('[超级面板] 已重新加载固定列表')
+          console.log('[SuperPanel] 已重新加载固定列表')
 
           return { success: true }
         } catch (error) {
-          console.error('取消固定失败:', error)
+          console.error('[SuperPanel] 取消固定失败:', error)
           return {
             success: false,
             error: error instanceof Error ? error.message : '未知错误'

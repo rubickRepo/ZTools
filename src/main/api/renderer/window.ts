@@ -87,7 +87,7 @@ export class WindowAPI {
       // 如果当前处于锁定状态，更新锁定的尺寸
       if (this.lockedSize) {
         this.lockedSize = { width, height: newHeight }
-        console.log('更新锁定尺寸:', this.lockedSize)
+        console.log('[WindowAPI] 更新锁定尺寸:', this.lockedSize)
       }
     }
   }
@@ -118,18 +118,18 @@ export class WindowAPI {
     if (this.mainWindow) {
       const clampedOpacity = Math.max(0.3, Math.min(1, opacity))
       this.mainWindow.setOpacity(clampedOpacity)
-      console.log('设置窗口不透明度:', clampedOpacity)
+      console.log('[WindowAPI] 设置窗口不透明度:', clampedOpacity)
     }
   }
 
   private setTrayIconVisible(visible: boolean): void {
     windowManager.setTrayIconVisible(visible)
-    console.log('设置托盘图标可见性:', visible)
+    console.log('[WindowAPI] 设置托盘图标可见性:', visible)
   }
 
   public setWindowMaterial(material: WindowMaterial): { success: boolean } {
     const result = windowManager.setWindowMaterial(material)
-    console.log('设置窗口材质:', material, '结果:', result)
+    console.log('[WindowAPI] 设置窗口材质:', material, '结果:', result)
     return result
   }
 
@@ -140,12 +140,12 @@ export class WindowAPI {
 
   private openSettings(): void {
     windowManager.showSettings()
-    console.log('打开设置插件')
+    console.log('[WindowAPI] 打开设置插件')
   }
 
   public async updateAutoBackToSearch(autoBackToSearch: string): Promise<void> {
     await windowManager.updateAutoBackToSearch(autoBackToSearch)
-    console.log('更新自动返回搜索配置:', autoBackToSearch)
+    console.log('[WindowAPI] 更新自动返回搜索配置:', autoBackToSearch)
   }
 }
 

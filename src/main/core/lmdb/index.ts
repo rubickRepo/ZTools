@@ -192,7 +192,7 @@ export default class LmdbDatabase {
     try {
       this.env.close()
     } catch (e) {
-      console.error('Error closing LMDB:', e)
+      console.error('[LMDB] Error closing LMDB:', e)
     }
   }
 
@@ -207,7 +207,7 @@ export default class LmdbDatabase {
         attachment: this.attachmentDb.getStats?.() || {}
       }
     } catch (e) {
-      console.error('Error getting stats:', e)
+      console.error('[LMDB] Error getting stats:', e)
       return {}
     }
   }
@@ -219,7 +219,7 @@ export default class LmdbDatabase {
     try {
       this.env.sync()
     } catch (e) {
-      console.error('Error syncing LMDB:', e)
+      console.error('[LMDB] Error syncing LMDB:', e)
     }
   }
 }

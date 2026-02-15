@@ -28,7 +28,7 @@ class DevToolsShortcutManager {
     // 注册全局快捷键
     const ret = globalShortcut.register(this.shortcut, () => {
       if (this.currentTarget && !this.currentTarget.isDestroyed()) {
-        console.log(`触发开发者工具快捷键，目标: ${this.currentTarget.id}`)
+        console.log(`[DevTools] 触发开发者工具快捷键，目标: ${this.currentTarget.id}`)
         if (this.currentTarget.isDevToolsOpened()) {
           this.currentTarget.closeDevTools()
         } else {
@@ -37,10 +37,8 @@ class DevToolsShortcutManager {
       }
     })
 
-    if (ret) {
-      console.log(`开发者工具快捷键注册成功，目标: ${target.id}`)
-    } else {
-      console.error(`开发者工具快捷键注册失败: ${this.shortcut}`)
+    if (!ret) {
+      console.error(`[DevTools] 开发者工具快捷键注册失败: ${this.shortcut}`)
     }
   }
 
@@ -50,7 +48,6 @@ class DevToolsShortcutManager {
   public unregister(): void {
     if (globalShortcut.isRegistered(this.shortcut)) {
       globalShortcut.unregister(this.shortcut)
-      console.log('开发者工具快捷键已注销')
     }
     this.currentTarget = null
   }

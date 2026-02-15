@@ -21,7 +21,7 @@ export async function launchApp(
 
     // 如果用户点击取消按钮，则不执行
     if (result.response === confirmDialog.cancelId) {
-      console.log('用户取消了操作')
+      console.log('[Launcher] 用户取消了操作')
       return
     }
   }
@@ -30,10 +30,10 @@ export async function launchApp(
   return new Promise((resolve, reject) => {
     exec(`open "${appPath}"`, (error) => {
       if (error) {
-        console.error('启动应用失败:', error)
+        console.error('[Launcher] 启动应用失败:', error)
         reject(error)
       } else {
-        console.log(`成功启动应用: ${appPath}`)
+        console.log(`[Launcher] 成功启动应用: ${appPath}`)
         resolve()
       }
     })

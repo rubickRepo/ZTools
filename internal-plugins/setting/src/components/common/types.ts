@@ -25,3 +25,4 @@ export type IconName =
   | 'brain'
   | 'pin'
   | 'info'
+  | 'terminal'

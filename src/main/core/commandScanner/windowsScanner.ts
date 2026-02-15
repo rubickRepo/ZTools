@@ -152,10 +152,10 @@ async function getLocalizedDisplayNames(dirPaths: string[]): Promise<Map<string,
       }
     }
 
-    console.log(`获取到 ${nameMap.size} 个本地化文件名映射`)
+    console.log(`[Scanner] 获取到 ${nameMap.size} 个本地化文件名映射`)
   } catch (error) {
     // 失败不影响扫描，降级使用磁盘文件名
-    console.error('获取本地化显示名称失败（将使用文件名）:', error)
+    console.error('[Scanner] 获取本地化显示名称失败（将使用文件名）:', error)
   }
 
   return nameMap
@@ -316,7 +316,7 @@ async function scanDirectory(
       apps.push(app)
     }
   } catch (error) {
-    console.error(`扫描目录失败 ${dirPath}:`, error)
+    console.error(`[Scanner] 扫描目录失败 ${dirPath}:`, error)
   }
 }
 
@@ -361,12 +361,12 @@ export async function scanApplications(): Promise<Command[]> {
 
     const endTime = performance.now()
     console.log(
-      `扫描完成: ${apps.length} 个应用 -> 去重后 ${deduplicatedApps.length} 个, 耗时 ${(endTime - startTime).toFixed(0)}ms`
+      `[Scanner] 扫描完成: ${apps.length} 个应用 -> 去重后 ${deduplicatedApps.length} 个, 耗时 ${(endTime - startTime).toFixed(0)}ms`
     )
 
     return deduplicatedApps
   } catch (error) {
-    console.error('扫描应用失败:', error)
+    console.error('[Scanner] 扫描应用失败:', error)
     return []
   }
 }

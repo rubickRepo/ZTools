@@ -15,7 +15,7 @@ export async function scanApplications(): Promise<Command[]> {
     // Windows
     return winScan()
   } else {
-    console.warn(`不支持的平台: ${platform}`)
+    console.warn(`[Scanner] 不支持的平台: ${platform}`)
     return []
   }
 }

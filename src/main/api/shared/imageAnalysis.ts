@@ -39,7 +39,7 @@ async function analyzeImage(imagePath: string): Promise<ImageAnalysisResult> {
           // 使用 fileURLToPath 安全地将 file:// URL 转换为文件路径
           filePath = fileURLToPath(filePath)
         } catch (error) {
-          console.error('无效的 file:// URL:', filePath, error)
+          console.error('[ImageAnalysis] 无效的 file:// URL:', filePath, error)
           return { isSimpleIcon: false, mainColor: null, isDark: false, needsAdaptation: false }
         }
       }
@@ -204,7 +204,7 @@ async function analyzeImage(imagePath: string): Promise<ImageAnalysisResult> {
     analysisCache.set(bufferHash, result)
     return result
   } catch (error) {
-    console.error('图片分析失败:', error)
+    console.error('[ImageAnalysis] 图片分析失败:', error)
     return { isSimpleIcon: false, mainColor: null, isDark: false, needsAdaptation: false }
   }
 }
@@ -215,7 +215,7 @@ export function setupImageAnalysisAPI(): void {
     try {
       return await analyzeImage(imagePath)
     } catch (error) {
-      console.error('图片分析失败:', error)
+      console.error('[ImageAnalysis] 图片分析失败:', error)
       return { isSimpleIcon: false, mainColor: null, isDark: false, needsAdaptation: false }
     }
   })

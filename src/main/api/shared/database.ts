@@ -73,7 +73,7 @@ export class DatabaseAPI {
         }
       }
       const result = lmdbInstance.remove(docOrId)
-      console.log('sync db:remove', docOrId, 'result', result)
+      console.log('[Database] sync db:remove', docOrId, 'result', result)
       // 如果是插件调用，需要去除返回结果中的前缀
       if (prefix && result.id && result.id.startsWith(prefix)) {
         result.id = result.id.slice(prefix.length)
@@ -129,7 +129,7 @@ export class DatabaseAPI {
       if (prefix) {
         id = prefix + id
       }
-      console.log('on db:post-attachment', id, attachment, type)
+      console.log('[Database] on db:post-attachment', id, attachment, type)
       const result = lmdbInstance.postAttachment(id, attachment, type)
       // 如果是插件调用，需要去除返回结果中的前缀
       if (prefix && result.id && result.id.startsWith(prefix)) {
@@ -144,7 +144,7 @@ export class DatabaseAPI {
         id = prefix + id
       }
       const result = lmdbInstance.getAttachment(id)
-      console.log('on db:get-attachment', id, 'result', result)
+      console.log('[Database] on db:get-attachment', id, 'result', result)
       event.returnValue = result
     })
 
@@ -153,7 +153,7 @@ export class DatabaseAPI {
       if (prefix) {
         id = prefix + id
       }
-      console.log('on db:get-attachment-type', id)
+      console.log('[Database] on db:get-attachment-type', id)
       event.returnValue = lmdbInstance.getAttachmentType(id)
     })
 
@@ -194,7 +194,7 @@ export class DatabaseAPI {
         }
       }
       const result = await lmdbInstance.promises.remove(docOrId)
-      console.log('handle db:remove', docOrId, 'result', result)
+      console.log('[Database] handle db:remove', docOrId, 'result', result)
       // 如果是插件调用，需要去除返回结果中的前缀
       if (prefix && result.id && result.id.startsWith(prefix)) {
         result.id = result.id.slice(prefix.length)
@@ -250,7 +250,7 @@ export class DatabaseAPI {
       if (prefix) {
         id = prefix + id
       }
-      console.log('handle db:post-attachment', id, attachment, type)
+      console.log('[Database] handle db:post-attachment', id, attachment, type)
       const result = await lmdbInstance.promises.postAttachment(id, attachment, type)
       // 如果是插件调用，需要去除返回结果中的前缀
       if (prefix && result.id && result.id.startsWith(prefix)) {
@@ -265,7 +265,7 @@ export class DatabaseAPI {
         id = prefix + id
       }
       const result = await lmdbInstance.promises.getAttachment(id)
-      console.log('handle db:get-attachment', id, 'result', result)
+      console.log('[Database] handle db:get-attachment', id, 'result', result)
       return result
     })
 
@@ -274,7 +274,7 @@ export class DatabaseAPI {
       if (prefix) {
         id = prefix + id
       }
-      console.log('handle db:get-attachment-type', id)
+      console.log('[Database] handle db:get-attachment-type', id)
       return await lmdbInstance.promises.getAttachmentType(id)
     })
 
@@ -297,7 +297,7 @@ export class DatabaseAPI {
         const result = lmdbInstance.put(doc)
         event.returnValue = result.ok ? undefined : result
       } catch (error: unknown) {
-        console.error('dbStorage.setItem 失败:', error)
+        console.error('[Database] dbStorage.setItem 失败:', error)
         event.returnValue = { error: error instanceof Error ? error.message : String(error) }
       }
     })
@@ -310,7 +310,7 @@ export class DatabaseAPI {
         const doc = lmdbInstance.get(docId)
         event.returnValue = doc ? doc.data : null
       } catch (error: unknown) {
-        console.error('dbStorage.getItem 失败:', error)
+        console.error('[Database] dbStorage.getItem 失败:', error)
         event.returnValue = null
       }
     })
@@ -323,19 +323,19 @@ export class DatabaseAPI {
         const result = lmdbInstance.remove(docId)
         event.returnValue = result.ok ? undefined : result
       } catch (error: unknown) {
-        console.error('dbStorage.removeItem 失败:', error)
+        console.error('[Database] dbStorage.removeItem 失败:', error)
         event.returnValue = { error: error instanceof Error ? error.message : String(error) }
       }
     })
 
     // ============ 主程序渲染进程专用API（直接操作 ZTOOLS 命名空间） ============
     ipcMain.handle('ztools:db-put', async (_event, key: string, data: any) => {
-      // console.log('ztools:db-put', key, data)
+      // console.log('[Database] ztools:db-put', key, data)
       return await this.dbPut(key, data)
     })
 
     ipcMain.handle('ztools:db-get', async (_event, key: string) => {
-      console.log('ztools:db-get', key)
+      console.log('[Database] ztools:db-get', key)
       return await this.dbGet(key)
     })
 
@@ -383,7 +383,7 @@ export class DatabaseAPI {
 
       return await lmdbInstance.promises.put(doc)
     } catch (error) {
-      console.error('dbPut 失败:', key, error)
+      console.error('[Database] dbPut 失败:', key, error)
       throw error
     }
   }
@@ -399,7 +399,7 @@ export class DatabaseAPI {
 
       return doc.data
     } catch (error) {
-      console.error('dbGet 失败:', key, error)
+      console.error('[Database] dbGet 失败:', key, error)
       return null
     }
   }
@@ -504,7 +504,7 @@ export class DatabaseAPI {
 
       return { success: true, data }
     } catch (error: unknown) {
-      console.error('获取插件数据统计失败:', error)
+      console.error('[Database] 获取插件数据统计失败:', error)
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   }
@@ -554,7 +554,7 @@ export class DatabaseAPI {
 
       return { success: true, data: keys }
     } catch (error: unknown) {
-      console.error('获取插件文档 key 失败:', error)
+      console.error('[Database] 获取插件文档 key 失败:', error)
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   }
@@ -593,7 +593,7 @@ export class DatabaseAPI {
 
       return { success: false, error: '文档不存在' }
     } catch (error: unknown) {
-      console.error('获取插件文档失败:', error)
+      console.error('[Database] 获取插件文档失败:', error)
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   }
@@ -669,7 +669,7 @@ export class DatabaseAPI {
 
       return { success: true, deletedCount }
     } catch (error: unknown) {
-      console.error('清空插件数据失败:', error)
+      console.error('[Database] 清空插件数据失败:', error)
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   }

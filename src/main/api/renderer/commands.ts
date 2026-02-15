@@ -50,11 +50,11 @@ export class AppsAPI {
     this.pluginManager = pluginManager
     this.setupIPC()
     this.loadLastMatchState().catch((error) => {
-      console.error('加载上次匹配状态失败:', error)
+      console.error('[Commands] 加载上次匹配状态失败:', error)
     })
     // 异步加载本地应用搜索设置
     this.loadLocalAppSearchSetting().catch((error) => {
-      console.error('加载本地应用搜索设置失败:', error)
+      console.error('[Commands] 加载本地应用搜索设置失败:', error)
     })
   }
 
@@ -106,7 +106,7 @@ export class AppsAPI {
   public async setLocalAppSearch(enabled: boolean): Promise<void> {
     this.isLocalAppSearchEnabled = enabled
     this.cachedCommandsResult = null
-    console.log('本地应用搜索已' + (enabled ? '开启' : '关闭'))
+    console.log('[Commands] 本地应用搜索已' + (enabled ? '开启' : '关闭'))
 
     // 通知渲染进程应用列表已更新
     this.notifyRenderer('apps-changed')
@@ -121,9 +121,9 @@ export class AppsAPI {
       if (data && typeof data.localAppSearch === 'boolean') {
         this.isLocalAppSearchEnabled = data.localAppSearch
       }
-      console.log('加载本地应用搜索设置:', this.isLocalAppSearchEnabled)
+      console.log('[Commands] 加载本地应用搜索设置:', this.isLocalAppSearchEnabled)
     } catch (error) {
-      console.error('加载本地应用搜索设置失败:', error)
+      console.error('[Commands] 加载本地应用搜索设置失败:', error)
     }
   }
 
@@ -135,7 +135,7 @@ export class AppsAPI {
       const stats = await databaseAPI.dbGet('command-usage-stats')
       return stats || []
     } catch (error) {
-      console.error('获取使用统计失败:', error)
+      console.error('[Commands] 获取使用统计失败:', error)
       return []
     }
   }
@@ -145,17 +145,17 @@ export class AppsAPI {
    * 优先从数据库缓存读取，没有缓存时才扫描
    */
   private async getApps(): Promise<any[]> {
-    console.log('收到获取应用列表请求')
+    console.log('[Commands] 收到获取应用列表请求')
 
     // 如果本地应用搜索被禁用，直接返回空列表
     if (!this.isLocalAppSearchEnabled) {
-      console.log('本地应用搜索已关闭，返回空列表')
+      console.log('[Commands] 本地应用搜索已关闭，返回空列表')
       return []
     }
 
     // 开发模式下强制重新扫描（方便调试）
     if (!app.isPackaged) {
-      console.log('开发模式：跳过缓存，重新扫描应用...')
+      console.log('[Commands] 开发模式：跳过缓存，重新扫描应用...')
       return await this.scanAndCacheApps()
     }
 
@@ -180,18 +180,18 @@ export class AppsAPI {
         )
 
         if (hasOldFormat) {
-          console.log('检测到旧格式图标缓存，将重新扫描并更新为 ztools-icon 协议...')
+          console.log('[Commands] 检测到旧格式图标缓存，将重新扫描并更新为 ztools-icon 协议...')
         } else {
           console.log(`从缓存读取到 ${cachedApps.length} 个应用`)
           return cachedApps
         }
       }
     } catch (error) {
-      console.log('读取应用缓存失败，将进行扫描:', error)
+      console.log('[Commands] 读取应用缓存失败，将进行扫描:', error)
     }
 
     // 缓存不存在，执行扫描
-    console.log('缓存不存在，开始扫描应用...')
+    console.log('[Commands] 缓存不存在，开始扫描应用...')
     return await this.scanAndCacheApps()
   }
 
@@ -226,7 +226,7 @@ export class AppsAPI {
         }
         console.log(`合并 UWP 后共 ${apps.length} 个应用`)
       } catch (error) {
-        console.error('获取 UWP 应用失败:', error)
+        console.error('[Commands] 获取 UWP 应用失败:', error)
       }
     }
 
@@ -236,9 +236,9 @@ export class AppsAPI {
     // 保存到数据库缓存
     try {
       await databaseAPI.dbPut('cached-commands', apps)
-      console.log('应用列表已缓存到数据库')
+      console.log('[Commands] 应用列表已缓存到数据库')
     } catch (error) {
-      console.error('缓存应用列表失败:', error)
+      console.error('[Commands] 缓存应用列表失败:', error)
     }
 
     return apps
@@ -249,20 +249,20 @@ export class AppsAPI {
    */
   public async refreshAppsCache(): Promise<void> {
     if (!this.isLocalAppSearchEnabled) {
-      console.log('本地应用搜索已关闭，跳过刷新缓存')
+      console.log('[Commands] 本地应用搜索已关闭，跳过刷新缓存')
       return
     }
 
-    console.log('开始刷新应用缓存...')
+    console.log('[Commands] 开始刷新应用缓存...')
     try {
       await this.scanAndCacheApps()
       this.cachedCommandsResult = null
-      console.log('应用缓存刷新成功')
+      console.log('[Commands] 应用缓存刷新成功')
 
       // 通知渲染进程应用列表已更新
       this.notifyRenderer('apps-changed')
     } catch (error) {
-      console.error('刷新应用缓存失败:', error)
+      console.error('[Commands] 刷新应用缓存失败:', error)
     }
   }
 
@@ -298,7 +298,7 @@ export class AppsAPI {
         // 插件启动参数中添加 featureCode
         this.launchParam.code = featureCode || ''
 
-        console.log('启动插件:', {
+        console.log('[Commands] 启动插件:', {
           path: appPath,
           featureCode,
           name,
@@ -311,7 +311,7 @@ export class AppsAPI {
         // 判断命令类型并决定是否添加历史记录
         if (cmdType === 'window') {
           // window 类型：不记录历史，不保存状态（仅用于窗口匹配）
-          console.log('window 类型命令，跳过历史记录')
+          console.log('[Commands] window 类型命令，跳过历史记录')
         } else if (['img', 'over', 'files', 'regex'].includes(cmdType || '')) {
           // 匹配指令：保存状态并添加"上次匹配"到历史记录
           // 从param中提取完整的输入状态
@@ -326,7 +326,7 @@ export class AppsAPI {
               pastedText: inputState.pastedText || null,
               timestamp: Date.now()
             }
-            console.log('保存上次匹配状态:', this.lastMatchState)
+            console.log('[Commands] 保存上次匹配状态:', this.lastMatchState)
             // 持久化到数据库
             await this.saveLastMatchState()
 
@@ -352,12 +352,12 @@ export class AppsAPI {
           const pluginJsonPath = path.join(appPath, 'plugin.json')
           pluginConfig = JSON.parse(await fs.readFile(pluginJsonPath, 'utf-8'))
         } catch (error) {
-          console.error('读取 plugin.json 失败:', error)
+          console.error('[Commands] 读取 plugin.json 失败:', error)
         }
 
         // 检查是否为 system 插件（特殊处理：执行系统命令而不是创建视图）
         if (pluginConfig?.name === 'system') {
-          console.log('检测到 system 插件，执行系统命令:', featureCode)
+          console.log('[Commands] 检测到 system 插件，执行系统命令:', featureCode)
           return await executeSystemCommand(
             featureCode || '',
             {
@@ -384,7 +384,7 @@ export class AppsAPI {
                 console.log(`插件 ${pluginConfig.name} 配置为自动分离，直接在独立窗口中创建`)
               }
             } catch (error) {
-              console.error('检查自动分离配置失败:', error)
+              console.error('[Commands] 检查自动分离配置失败:', error)
             }
           }
 
@@ -396,7 +396,7 @@ export class AppsAPI {
             )
 
             if (!result.success) {
-              console.error('在独立窗口中创建插件失败:', result.error)
+              console.error('[Commands] 在独立窗口中创建插件失败:', result.error)
               // 如果创建失败，降级到主窗口模式
               this.notifyRenderer('show-plugin-placeholder')
               await this.pluginManager.createPluginView(appPath, featureCode || '', name)
@@ -427,7 +427,7 @@ export class AppsAPI {
         if (isLocalShortcut) {
           const result = await shell.openPath(appPath)
           if (result) {
-            console.error('打开本地启动项失败:', result)
+            console.error('[Commands] 打开本地启动项失败:', result)
             throw new Error(`打开失败: ${result}`)
           }
         } else {
@@ -443,7 +443,7 @@ export class AppsAPI {
         this.mainWindow?.hide()
       }
     } catch (error) {
-      console.error('启动失败:', error)
+      console.error('[Commands] 启动失败:', error)
       throw error
     }
   }
@@ -462,7 +462,7 @@ export class AppsAPI {
     try {
       const { path: appPath, type = 'app', featureCode, name: cmdName, cmdType } = options
 
-      console.log('添加指令到历史记录:', cmdName, '类型:', cmdType || 'text')
+      console.log('[Commands] 添加指令到历史记录:', cmdName, '类型:', cmdType || 'text')
 
       const now = Date.now()
 
@@ -523,7 +523,7 @@ export class AppsAPI {
               cmdType: cmdType || 'text' // ✅ 添加 cmdType
             }
           } catch (error) {
-            console.error('读取插件配置失败:', error)
+            console.error('[Commands] 读取插件配置失败:', error)
             return
           }
         }
@@ -560,7 +560,7 @@ export class AppsAPI {
       }
 
       if (!appInfo) {
-        console.warn('未找到应用信息，跳过添加历史记录:', appPath)
+        console.warn('[Commands] 未找到应用信息，跳过添加历史记录:', appPath)
         return
       }
 
@@ -597,12 +597,12 @@ export class AppsAPI {
       // 保存历史记录
       await databaseAPI.dbPut('command-history', history)
 
-      console.log('历史记录已更新:', appInfo.name)
+      console.log('[Commands] 历史记录已更新:', appInfo.name)
 
       // 通知前端重新加载历史记录
       this.notifyRenderer('history-changed')
     } catch (error) {
-      console.error('添加历史记录失败:', error)
+      console.error('[Commands] 添加历史记录失败:', error)
     }
   }
 
@@ -618,7 +618,7 @@ export class AppsAPI {
     try {
       const { path: cmdPath, type = 'app', featureCode, name: cmdName } = options
 
-      console.log('更新指令使用统计:', cmdName || cmdPath)
+      console.log('[Commands] 更新指令使用统计:', cmdName || cmdPath)
 
       const now = Date.now()
 
@@ -649,9 +649,9 @@ export class AppsAPI {
       // 保存统计数据
       await databaseAPI.dbPut('command-usage-stats', stats)
 
-      console.log('使用统计已更新')
+      console.log('[Commands] 使用统计已更新')
     } catch (error) {
-      console.error('更新使用统计失败:', error)
+      console.error('[Commands] 更新使用统计失败:', error)
     }
   }
 
@@ -663,7 +663,7 @@ export class AppsAPI {
       const plugins = await databaseAPI.dbGet('plugins')
       return plugins || []
     } catch (error) {
-      console.error('从数据库获取插件列表失败:', error)
+      console.error('[Commands] 从数据库获取插件列表失败:', error)
       return []
     }
   }
@@ -713,7 +713,7 @@ export class AppsAPI {
         error: '该插件所有功能都需要通过指令触发，无法直接打开'
       }
     } catch (error) {
-      console.error('读取插件配置失败:', error)
+      console.error('[Commands] 读取插件配置失败:', error)
       return {
         success: false,
         error: '读取插件配置失败'
@@ -736,12 +736,12 @@ export class AppsAPI {
       const history = filterOutCommand(originalHistory, appPath, featureCode, name)
 
       await databaseAPI.dbPut('command-history', history)
-      console.log('已从历史记录删除:', appPath, featureCode)
+      console.log('[Commands] 已从历史记录删除:', appPath, featureCode)
 
       // 通知前端重新加载历史记录
       this.notifyRenderer('history-changed')
     } catch (error) {
-      console.error('从历史记录删除失败:', error)
+      console.error('[Commands] 从历史记录删除失败:', error)
     }
   }
 
@@ -756,7 +756,7 @@ export class AppsAPI {
       const exists = hasCommand(pinnedApps, app.path, app.featureCode, app.name)
 
       if (exists) {
-        console.log('应用已固定:', app.path)
+        console.log('[Commands] 应用已固定:', app.path)
         return
       }
 
@@ -774,12 +774,12 @@ export class AppsAPI {
       })
 
       await databaseAPI.dbPut('pinned-commands', pinnedApps)
-      console.log('已固定应用:', app.name)
+      console.log('[Commands] 已固定应用:', app.name)
 
       // 通知前端重新加载固定列表
       this.notifyRenderer('pinned-changed')
     } catch (error) {
-      console.error('固定应用失败:', error)
+      console.error('[Commands] 固定应用失败:', error)
     }
   }
 
@@ -794,12 +794,12 @@ export class AppsAPI {
       const pinnedApps = filterOutCommand(originalPinnedApps, appPath, featureCode, name)
 
       await databaseAPI.dbPut('pinned-commands', pinnedApps)
-      console.log('已取消固定:', appPath, featureCode)
+      console.log('[Commands] 已取消固定:', appPath, featureCode)
 
       // 通知前端重新加载固定列表
       this.notifyRenderer('pinned-changed')
     } catch (error) {
-      console.error('取消固定失败:', error)
+      console.error('[Commands] 取消固定失败:', error)
     }
   }
 
@@ -821,12 +821,12 @@ export class AppsAPI {
       }))
 
       await databaseAPI.dbPut('pinned-commands', cleanData)
-      console.log('固定列表顺序已更新')
+      console.log('[Commands] 固定列表顺序已更新')
 
       // 通知前端重新加载固定列表
       this.notifyRenderer('pinned-changed')
     } catch (error) {
-      console.error('更新固定列表顺序失败:', error)
+      console.error('[Commands] 更新固定列表顺序失败:', error)
     }
   }
 
@@ -838,10 +838,10 @@ export class AppsAPI {
       const state = await databaseAPI.dbGet('last-match-state')
       if (state) {
         this.lastMatchState = state
-        console.log('加载上次匹配状态:', state)
+        console.log('[Commands] 加载上次匹配状态:', state)
       }
     } catch (error) {
-      console.log('加载上次匹配状态失败:', error)
+      console.log('[Commands] 加载上次匹配状态失败:', error)
     }
   }
 
@@ -852,10 +852,10 @@ export class AppsAPI {
     try {
       if (this.lastMatchState) {
         await databaseAPI.dbPut('last-match-state', this.lastMatchState)
-        console.log('保存上次匹配状态到数据库')
+        console.log('[Commands] 保存上次匹配状态到数据库')
       }
     } catch (error) {
-      console.error('保存上次匹配状态失败:', error)
+      console.error('[Commands] 保存上次匹配状态失败:', error)
     }
   }
 
@@ -971,7 +971,7 @@ export class AppsAPI {
       this.cachedCommandsResult = result
       return result
     } catch (error) {
-      console.error('获取指令列表失败:', error)
+      console.error('[Commands] 获取指令列表失败:', error)
       return { commands: [], regexCommands: [], plugins: [] }
     }
   }

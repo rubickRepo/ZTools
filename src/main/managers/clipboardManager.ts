@@ -90,19 +90,19 @@ class ClipboardManager {
 
     // 启动剪贴板监听器（原生事件已做去重）
     this.clipboardMonitor.start(() => {
-      console.log('剪贴板变化事件触发')
+      console.log('[Clipboard] 剪贴板变化事件触发')
       this.handleClipboardChange()
     })
 
     // 启动窗口激活监听
     this.windowMonitor.start((windowInfo) => {
-      // console.log('窗口激活事件：', windowInfo)
+      // console.log('[Clipboard] 窗口激活事件：', windowInfo)
       this.handleWindowActivation(windowInfo)
     })
 
     this.isRunning = true
-    console.log('剪贴板监听已启动（原生事件模式）')
-    console.log('窗口激活监听已启动')
+    console.log('[Clipboard] 剪贴板监听已启动（原生事件模式）')
+    console.log('[Clipboard] 窗口激活监听已启动')
   }
 
   // 处理窗口激活事件
@@ -143,14 +143,14 @@ class ClipboardManager {
     try {
       const identifier = os.platform() === 'win32' ? info.pid : info.bundleId
       if (!identifier) {
-        console.error('无法激活应用：缺少必要的标识符 (bundleId 或 pid)')
+        console.error('[Clipboard] 无法激活应用：缺少必要的标识符 (bundleId 或 pid)')
         return false
       }
       const success = WindowManager.activateWindow(identifier)
       console.log(`激活应用 ${identifier}: ${success ? '成功' : '失败'}`)
       return success
     } catch (error) {
-      console.error('激活应用失败:', error)
+      console.error('[Clipboard] 激活应用失败:', error)
       return false
     }
   }
@@ -176,7 +176,7 @@ class ClipboardManager {
           const files = ClipboardMonitor.getClipboardFiles()
           hasFiles = files.length > 0
         } catch (error) {
-          console.error('原生 API 获取文件失败:', error)
+          console.error('[Clipboard] 原生 API 获取文件失败:', error)
           hasFiles = false
         }
       }
@@ -190,13 +190,13 @@ class ClipboardManager {
       }
 
       if (item) {
-        // console.log('新剪贴板内容:', item)
+        // console.log('[Clipboard] 新剪贴板内容:', item)
         await this.saveItem(item as ClipboardItem)
         // 通知插件剪贴板变化
         pluginManager?.sendPluginMessage('clipboard-change', item)
       }
     } catch (error) {
-      console.error('处理剪贴板失败:', error)
+      console.error('[Clipboard] 处理剪贴板失败:', error)
     }
   }
 
@@ -208,15 +208,15 @@ class ClipboardManager {
       if (os.platform() === 'darwin') {
         // macOS 使用 NSFilenamesPboardType 格式
         if (!clipboard.has('NSFilenamesPboardType')) {
-          console.error('没有文件类型数据')
+          console.error('[Clipboard] 没有文件类型数据')
           return null as any
         }
 
         const result = clipboard.read('NSFilenamesPboardType')
-        console.log('文件原始数据:', result)
+        console.log('[Clipboard] 文件原始数据:', result)
 
         if (!result) {
-          console.error('读取文件数据为空')
+          console.error('[Clipboard] 读取文件数据为空')
           return null as any
         }
 
@@ -224,14 +224,14 @@ class ClipboardManager {
         let filePaths: string[] = []
         try {
           filePaths = plist.parse(result) as string[]
-          console.log('解析后的文件列表:', filePaths)
+          console.log('[Clipboard] 解析后的文件列表:', filePaths)
         } catch (error) {
-          console.error('plist 解析失败:', error)
+          console.error('[Clipboard] plist 解析失败:', error)
           return null as any
         }
 
         if (!Array.isArray(filePaths) || filePaths.length === 0) {
-          console.error('文件列表为空')
+          console.error('[Clipboard] 文件列表为空')
           return null as any
         }
 
@@ -245,7 +245,7 @@ class ClipboardManager {
               const stat = await fs.stat(filePath)
               isDirectory = stat.isDirectory()
             } catch (error) {
-              console.error('检查文件状态失败:', filePath, error)
+              console.error('[Clipboard] 检查文件状态失败:', filePath, error)
             }
 
             return {
@@ -258,11 +258,11 @@ class ClipboardManager {
       } else if (os.platform() === 'win32') {
         // Windows 使用原生 API 获取文件列表
         files = ClipboardMonitor.getClipboardFiles()
-        console.log('原生 API 获取的文件列表:', files)
+        console.log('[Clipboard] 原生 API 获取的文件列表:', files)
       }
 
       if (!Array.isArray(files) || files.length === 0) {
-        console.error('文件列表为空')
+        console.error('[Clipboard] 文件列表为空')
         return null as any
       }
 
@@ -300,7 +300,7 @@ class ClipboardManager {
         preview
       }
     } catch (error) {
-      console.error('处理文件失败:', error)
+      console.error('[Clipboard] 处理文件失败:', error)
       return null as any
     }
   }
@@ -321,7 +321,7 @@ class ClipboardManager {
 
       // 检查图片大小
       if (buffer.length > this.config.maxImageSize) {
-        console.log('图片过大，跳过保存:', (buffer.length / 1024 / 1024).toFixed(2), 'MB')
+        console.log('[Clipboard] 图片过大，跳过保存:', (buffer.length / 1024 / 1024).toFixed(2), 'MB')
         return {
           id: uuidv4(),
           type: 'image',
@@ -353,7 +353,7 @@ class ClipboardManager {
         preview: `[图片] ${size}KB`
       }
     } catch (error) {
-      console.error('处理图片失败:', error)
+      console.error('[Clipboard] 处理图片失败:', error)
       return null as any
     }
   }
@@ -419,7 +419,7 @@ class ClipboardManager {
       // 检查并清理旧记录
       await this.checkAndCleanOldItems()
     } catch (error) {
-      console.error('保存剪贴板记录失败:', error)
+      console.error('[Clipboard] 保存剪贴板记录失败:', error)
     }
   }
 
@@ -440,7 +440,7 @@ class ClipboardManager {
         console.log(`清理了 ${toDelete.length} 条旧记录`)
       }
     } catch (error) {
-      console.error('清理旧记录失败:', error)
+      console.error('[Clipboard] 清理旧记录失败:', error)
     }
   }
 
@@ -474,14 +474,14 @@ class ClipboardManager {
             const stat = await fs.stat(item.imagePath!)
             await fs.unlink(item.imagePath!)
             totalSize -= stat.size
-            console.log('删除旧图片:', item.imagePath)
+            console.log('[Clipboard] 删除旧图片:', item.imagePath)
           } catch {
             // 文件已不存在
           }
         }
       }
     } catch (error) {
-      console.error('清理图片存储失败:', error)
+      console.error('[Clipboard] 清理图片存储失败:', error)
     }
   }
 
@@ -501,7 +501,7 @@ class ClipboardManager {
         } as unknown as ClipboardItem
       })
     } catch (error) {
-      console.error('获取所有记录失败:', error)
+      console.error('[Clipboard] 获取所有记录失败:', error)
       return []
     }
   }
@@ -571,7 +571,7 @@ class ClipboardManager {
         pageSize
       }
     } catch (error) {
-      console.error('查询历史记录失败:', error)
+      console.error('[Clipboard] 查询历史记录失败:', error)
       return { items: [], total: 0, page, pageSize }
     }
   }
@@ -593,19 +593,19 @@ class ClipboardManager {
         if (doc.type === 'image' && doc.imagePath) {
           try {
             await fs.unlink(doc.imagePath)
-            console.log('删除图片文件:', doc.imagePath)
+            console.log('[Clipboard] 删除图片文件:', doc.imagePath)
           } catch {
             // 文件可能已被删除
           }
         }
 
         await lmdbInstance.promises.remove(docId)
-        console.log('删除剪贴板记录:', id)
+        console.log('[Clipboard] 删除剪贴板记录:', id)
         return true
       }
       return false
     } catch (error) {
-      console.error('删除记录失败:', error)
+      console.error('[Clipboard] 删除记录失败:', error)
       return false
     }
   }
@@ -628,7 +628,7 @@ class ClipboardManager {
       console.log(`清空了 ${count} 条记录`)
       return count
     } catch (error) {
-      console.error('清空历史失败:', error)
+      console.error('[Clipboard] 清空历史失败:', error)
       return 0
     }
   }
@@ -640,7 +640,7 @@ class ClipboardManager {
       const doc = await lmdbInstance.promises.get(docId)
 
       if (!doc) {
-        console.error('记录不存在:', id)
+        console.error('[Clipboard] 记录不存在:', id)
         return false
       }
 
@@ -679,7 +679,7 @@ class ClipboardManager {
                   isSame = JSON.stringify(currentFilePaths) === JSON.stringify(itemFilePaths)
                 }
               } catch (error) {
-                console.error('解析当前剪贴板文件列表失败:', error)
+                console.error('[Clipboard] 解析当前剪贴板文件列表失败:', error)
               }
             }
           } else {
@@ -691,7 +691,7 @@ class ClipboardManager {
               // 比较文件路径列表（顺序也要一致）
               isSame = JSON.stringify(currentFilePaths) === JSON.stringify(itemFilePaths)
             } catch (error) {
-              console.error('获取当前剪贴板文件列表失败:', error)
+              console.error('[Clipboard] 获取当前剪贴板文件列表失败:', error)
             }
           }
           break
@@ -700,7 +700,7 @@ class ClipboardManager {
 
       // 如果内容一致，不执行写回和删除操作
       if (isSame) {
-        console.log('剪贴板内容与要写回的内容一致，跳过操作:', item.type, item.preview)
+        console.log('[Clipboard] 剪贴板内容与要写回的内容一致，跳过操作:', item.type, item.preview)
         return true
       }
 
@@ -724,7 +724,7 @@ class ClipboardManager {
               clipboard.writeImage(image)
               return true
             } catch (error) {
-              console.error('读取图片失败:', error)
+              console.error('[Clipboard] 读取图片失败:', error)
               return false
             }
           }
@@ -743,10 +743,10 @@ class ClipboardManager {
                 // Windows 使用原生 API
                 ClipboardMonitor.setClipboardFiles(filePaths)
               }
-              console.log('文件列表已写回剪贴板:', filePaths)
+              console.log('[Clipboard] 文件列表已写回剪贴板:', filePaths)
               return true
             } catch (error) {
-              console.error('写回文件列表失败:', error)
+              console.error('[Clipboard] 写回文件列表失败:', error)
               return false
             }
           }
@@ -755,7 +755,7 @@ class ClipboardManager {
 
       return false
     } catch (error) {
-      console.error('写回剪贴板失败:', error)
+      console.error('[Clipboard] 写回剪贴板失败:', error)
       return false
     }
   }
@@ -789,12 +789,12 @@ class ClipboardManager {
           return true
         }
 
-        console.error('无效的图片内容')
+        console.error('[Clipboard] 无效的图片内容')
         return false
       }
       return false
     } catch (error) {
-      console.error('写入内容失败:', error)
+      console.error('[Clipboard] 写入内容失败:', error)
       return false
     }
   }
@@ -861,7 +861,7 @@ class ClipboardManager {
         imageStorageSize
       }
     } catch (error) {
-      console.error('获取状态失败:', error)
+      console.error('[Clipboard] 获取状态失败:', error)
       return {
         isRunning: this.isRunning,
         itemCount: 0,

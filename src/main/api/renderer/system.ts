@@ -59,7 +59,7 @@ export class SystemAPI {
     try {
       await shell.openExternal(url)
     } catch (error) {
-      console.error('打开外部链接失败:', error)
+      console.error('[System] 打开外部链接失败:', error)
       throw error
     }
   }
@@ -68,7 +68,7 @@ export class SystemAPI {
     try {
       clipboard.writeText(text)
     } catch (error) {
-      console.error('复制到剪贴板失败:', error)
+      console.error('[System] 复制到剪贴板失败:', error)
       throw error
     }
   }
@@ -77,7 +77,7 @@ export class SystemAPI {
     try {
       await appleScriptHelper.openInTerminal(path)
     } catch (error) {
-      console.error('在终端打开失败:', error)
+      console.error('[System] 在终端打开失败:', error)
       throw error
     }
   }
@@ -86,7 +86,7 @@ export class SystemAPI {
     try {
       return await appleScriptHelper.getFinderPath()
     } catch (error) {
-      console.error('获取访达路径失败:', error)
+      console.error('[System] 获取访达路径失败:', error)
       return null
     }
   }
@@ -99,7 +99,7 @@ export class SystemAPI {
     try {
       return clipboardManager.getLastCopiedContent(timeLimit)
     } catch (error) {
-      console.error('获取最后复制内容失败:', error)
+      console.error('[System] 获取最后复制内容失败:', error)
       return null
     }
   }
@@ -112,7 +112,7 @@ export class SystemAPI {
     try {
       return await appleScriptHelper.getFrontmostApp()
     } catch (error) {
-      console.error('获取当前激活应用失败:', error)
+      console.error('[System] 获取当前激活应用失败:', error)
       return null
     }
   }
@@ -143,7 +143,7 @@ export class SystemAPI {
         return { success: false, error: '激活应用失败' }
       }
     } catch (error: unknown) {
-      console.error('激活应用失败:', error)
+      console.error('[System] 激活应用失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -169,7 +169,7 @@ export class SystemAPI {
     } catch (error: unknown) {
       const platformName =
         process.platform === 'darwin' ? 'macOS' : process.platform === 'win32' ? 'Windows' : 'Linux'
-      console.error(`在${platformName}文件管理器中显示文件失败:`, error)
+      console.error(`[System] 在${platformName}文件管理器中显示文件失败:`, error)
       throw error
     }
   }
@@ -232,7 +232,7 @@ export class SystemAPI {
 
       return { success: true, path: pathToFileURL(avatarPath).href }
     } catch (error: unknown) {
-      console.error('选择头像失败:', error)
+      console.error('[System] 选择头像失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '未知错误' }
     }
   }
@@ -252,7 +252,7 @@ export class SystemAPI {
             }
             return result
           } catch (error) {
-            console.log('主进程：文件不存在或无权访问:', filePath, error)
+            console.log('[System] 主进程：文件不存在或无权访问:', filePath, error)
             return {
               path: filePath,
               isDirectory: false,
@@ -263,7 +263,7 @@ export class SystemAPI {
       )
       return results
     } catch (error) {
-      console.error('主进程：检查文件路径失败:', error)
+      console.error('[System] 主进程：检查文件路径失败:', error)
       return []
     }
   }
