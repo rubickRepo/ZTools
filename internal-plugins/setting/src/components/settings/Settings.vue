@@ -23,8 +23,10 @@
       <PluginCenter
         v-if="activeMenu === 'plugins'"
         :search-query="props.searchQuery"
+        :add-dev-plugin-file-path="addDevPluginFilePath"
         :auto-open-plugin-name="autoOpenPluginName"
         @auto-open-consumed="handleAutoOpenConsumed"
+        @add-dev-consumed="handleAddDevConsumed"
       />
 
       <!-- 插件市场 -->
@@ -98,6 +100,7 @@ interface Props {
   activePage: string
   searchQuery?: string
   installPluginFilePath?: string
+  addDevPluginFilePath?: string
   autoOpenPluginName?: string
 }
 
@@ -107,6 +110,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:activePage': [value: string]
   'auto-open-consumed': []
+  'add-dev-consumed': []
 }>()
 
 // 菜单项类型
@@ -156,6 +160,9 @@ const shortcutAutoAddTarget = ref('')
 // 自动打开的插件名称（合并外部传入和内部设置两个来源）
 const autoOpenPluginName = ref('')
 
+// 添加开发插件文件路径
+const addDevPluginFilePath = ref('')
+
 // 监听外部传入的 autoOpenPluginName prop
 watch(
   () => props.autoOpenPluginName,
@@ -167,10 +174,27 @@ watch(
   { immediate: true }
 )
 
+// 监听外部传入的 addDevPluginFilePath prop
+watch(
+  () => props.addDevPluginFilePath,
+  (filePath) => {
+    if (filePath) {
+      addDevPluginFilePath.value = filePath
+    }
+  },
+  { immediate: true }
+)
+
 // 处理 PluginCenter 消费完 autoOpenPluginName 后的清理
 function handleAutoOpenConsumed(): void {
   autoOpenPluginName.value = ''
   emit('auto-open-consumed')
+}
+
+// 处理 PluginCenter 消费完 addDevPluginFilePath 后的清理
+function handleAddDevConsumed(): void {
+  addDevPluginFilePath.value = ''
+  emit('add-dev-consumed')
 }
 
 // 处理子组件导航请求

@@ -124,11 +124,11 @@ export class InternalPluginAPI {
       return await (pluginsAPI as any).installPluginFromPath(zipPath)
     })
 
-    ipcMain.handle('internal:import-dev-plugin', async (event) => {
+    ipcMain.handle('internal:import-dev-plugin', async (event, pluginJsonPath?: string) => {
       if (!requireInternalPlugin(this.pluginManager, event)) {
         throw new PermissionDeniedError('internal:import-dev-plugin')
       }
-      return await (pluginsAPI as any).importDevPlugin()
+      return await (pluginsAPI as any).importDevPlugin(pluginJsonPath)
     })
 
     ipcMain.handle('internal:delete-plugin', async (event, pluginPath: string) => {

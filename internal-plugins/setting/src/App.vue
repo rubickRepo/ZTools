@@ -13,6 +13,8 @@ const activePage = ref<string>('general')
 const searchQuery = ref<string>('')
 // 安装插件文件路径
 const installPluginFilePath = ref<string>('')
+// 添加开发插件文件路径
+const addDevPluginFilePath = ref<string>('')
 // 自动打开的插件详情名称（从外部启动参数传入）
 const autoOpenPluginName = ref<string>('')
 
@@ -63,7 +65,8 @@ onMounted(() => {
       data: 'data',
       'all-commands': 'all-commands',
       sync: 'sync',
-      'install-plugin': 'install-plugin'
+      'install-plugin': 'install-plugin',
+      'add-dev-plugin': 'plugins'
     }
 
     const targetPage = pageMap[action.code] || 'general'
@@ -89,6 +92,14 @@ onMounted(() => {
       const files = Array.isArray(action.payload) ? action.payload : []
       if (files.length > 0 && files[0].path) {
         installPluginFilePath.value = files[0].path
+      }
+    }
+
+    // 添加开发中插件：从 files payload 中提取 plugin.json 文件路径
+    if (action.code === 'add-dev-plugin' && action.payload) {
+      const files = Array.isArray(action.payload) ? action.payload : []
+      if (files.length > 0 && files[0].path) {
+        addDevPluginFilePath.value = files[0].path
       }
     }
   })
@@ -130,8 +141,10 @@ onMounted(() => {
     v-model:active-page="activePage"
     :search-query="searchQuery"
     :install-plugin-file-path="installPluginFilePath"
+    :add-dev-plugin-file-path="addDevPluginFilePath"
     :auto-open-plugin-name="autoOpenPluginName"
     @auto-open-consumed="autoOpenPluginName = ''"
+    @add-dev-consumed="addDevPluginFilePath = ''"
   />
   <!-- 全局Toast组件 -->
   <Toast

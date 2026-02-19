@@ -79,6 +79,20 @@
           "maxLength": 1
         }
       ]
+    },
+    {
+      "code": "add-dev-plugin",
+      "explain": "添加开发中插件",
+      "icon": "logo.png",
+      "cmds": [
+        {
+          "type": "files",
+          "label": "添加开发中插件",
+          "fileType": "file",
+          "match": "/plugin\\.json$/i",
+          "maxLength": 1
+        }
+      ]
     }
   ]
 }

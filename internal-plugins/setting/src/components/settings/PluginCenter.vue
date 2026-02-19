@@ -231,11 +231,13 @@ import PluginDetail from './PluginDetail.vue'
 
 const props = defineProps<{
   searchQuery?: string
+  addDevPluginFilePath?: string
   autoOpenPluginName?: string
 }>()
 
 const emit = defineEmits<{
   (e: 'auto-open-consumed'): void
+  (e: 'add-dev-consumed'): void
 }>()
 
 const { success, error, confirm } = useToast()
@@ -338,6 +340,30 @@ async function importDevPlugin(): Promise<void> {
     error(`添加开发中插件失败: ${err.message || '未知错误'}`)
   } finally {
     isImportingDev.value = false
+  }
+}
+
+// 自动添加开发插件（从文件路径）
+async function tryAutoAddDevPlugin(): Promise<void> {
+  const filePath = props.addDevPluginFilePath
+  if (!filePath || isImportingDev.value) return
+
+  isImportingDev.value = true
+  try {
+    const result = await window.ztools.internal.importDevPlugin(filePath)
+    if (result.success) {
+      // 重新加载插件列表
+      await loadPlugins()
+      success('开发中插件添加成功!')
+    } else {
+      error(`添加开发中插件失败: ${result.error}`)
+    }
+  } catch (err: any) {
+    console.error('添加开发中插件失败:', err)
+    error(`添加开发中插件失败: ${err.message || '未知错误'}`)
+  } finally {
+    isImportingDev.value = false
+    emit('add-dev-consumed')
   }
 }
 
@@ -542,6 +568,16 @@ watch(
   (name) => {
     if (name) {
       tryAutoOpenPlugin()
+    }
+  }
+)
+
+// 监听添加开发插件文件路径
+watch(
+  () => props.addDevPluginFilePath,
+  (filePath) => {
+    if (filePath) {
+      tryAutoAddDevPlugin()
     }
   }
 )

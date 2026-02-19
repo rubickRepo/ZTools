@@ -47,7 +47,8 @@ const api = {
   getPlugins: () => ipcRenderer.invoke('get-plugins'),
   getAllPlugins: () => ipcRenderer.invoke('get-all-plugins'),
   importPlugin: () => ipcRenderer.invoke('import-plugin'),
-  importDevPlugin: () => ipcRenderer.invoke('import-dev-plugin'),
+  importDevPlugin: (pluginJsonPath?: string) =>
+    ipcRenderer.invoke('import-dev-plugin', pluginJsonPath),
   fetchPluginMarket: () => ipcRenderer.invoke('fetch-plugin-market'),
   installPluginFromMarket: (plugin: any) =>
     ipcRenderer.invoke('install-plugin-from-market', plugin),
@@ -400,7 +401,7 @@ declare global {
       getPlugins: () => Promise<any[]>
       getAllPlugins: () => Promise<any[]>
       importPlugin: () => Promise<{ success: boolean; error?: string }>
-      importDevPlugin: () => Promise<{ success: boolean; error?: string }>
+      importDevPlugin: (pluginJsonPath?: string) => Promise<{ success: boolean; error?: string }>
       fetchPluginMarket: () => Promise<{ success: boolean; data?: any; error?: string }>
       installPluginFromMarket: (plugin: any) => Promise<{
         success: boolean

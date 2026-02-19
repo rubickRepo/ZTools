@@ -34,7 +34,9 @@ export class PluginsAPI {
     ipcMain.handle('get-plugins', () => this.getPlugins())
     ipcMain.handle('get-all-plugins', () => this.getAllPlugins())
     ipcMain.handle('import-plugin', () => this.importPlugin())
-    ipcMain.handle('import-dev-plugin', () => this.importDevPlugin())
+    ipcMain.handle('import-dev-plugin', (_event, pluginJsonPath?: string) =>
+      this.importDevPlugin(pluginJsonPath)
+    )
     ipcMain.handle('delete-plugin', (_event, pluginPath: string) => this.deletePlugin(pluginPath))
     ipcMain.handle('reload-plugin', (_event, pluginPath: string) => this.reloadPlugin(pluginPath))
     ipcMain.handle('get-running-plugins', () => this.getRunningPlugins())
@@ -450,20 +452,23 @@ export class PluginsAPI {
   }
 
   // 导入开发中插件
-  private async importDevPlugin(): Promise<any> {
+  private async importDevPlugin(pluginJsonPath?: string): Promise<any> {
     try {
-      const result = await dialog.showOpenDialog(this.mainWindow!, {
-        title: '选择插件配置文件',
-        properties: ['openFile'],
-        filters: [{ name: '插件配置', extensions: ['json'] }],
-        message: '请选择 plugin.json 文件'
-      })
+      // 如果没有传入路径，通过对话框选择
+      if (!pluginJsonPath) {
+        const result = await dialog.showOpenDialog(this.mainWindow!, {
+          title: '选择插件配置文件',
+          properties: ['openFile'],
+          filters: [{ name: '插件配置', extensions: ['json'] }],
+          message: '请选择 plugin.json 文件'
+        })
 
-      if (result.canceled || result.filePaths.length === 0) {
-        return { success: false, error: '未选择文件' }
+        if (result.canceled || result.filePaths.length === 0) {
+          return { success: false, error: '未选择文件' }
+        }
+
+        pluginJsonPath = result.filePaths[0]
       }
-
-      const pluginJsonPath = result.filePaths[0]
 
       // 检查文件名是否为 plugin.json
       if (path.basename(pluginJsonPath) !== 'plugin.json') {
