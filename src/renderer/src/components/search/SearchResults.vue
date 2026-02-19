@@ -475,7 +475,7 @@ async function handleAppContextMenu(
         pluginName: app.pluginName,
         pluginExplain: app.pluginExplain
       })}`,
-      label: '固定到顶部'
+      label: '固定到搜索框'
     })
   }
 
