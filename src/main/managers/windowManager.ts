@@ -372,6 +372,10 @@ class WindowManager {
   public registerShortcut(shortcut?: string): boolean {
     const keyToRegister = shortcut || this.currentShortcut
 
+    // 保存旧的快捷键信息，用于注册失败时回滚
+    const oldShortcut = this.currentShortcut
+    const oldIsDoubleTapMode = this.isDoubleTapMode
+
     // 注销旧的呼出快捷键（仅注销当前快捷键，不影响其他全局快捷键）
     if (this.isDoubleTapMode) {
       const oldModifier = this.currentShortcut.split('+')[0]
@@ -398,7 +402,18 @@ class WindowManager {
     })
 
     if (!ret) {
-      console.error(`快捷键注册失败: ${keyToRegister} 已被占用`)
+      console.error(`快捷键注册失败: ${keyToRegister} 已被占用，回滚到旧快捷键: ${oldShortcut}`)
+      // 注册失败，回滚：重新注册旧的快捷键
+      if (oldIsDoubleTapMode) {
+        const oldModifier = oldShortcut.split('+')[0]
+        doubleTapManager.register(oldModifier, () => {
+          this.toggleWindow()
+        })
+      } else {
+        globalShortcut.register(oldShortcut, () => {
+          this.toggleWindow()
+        })
+      }
       return false
     } else {
       this.currentShortcut = keyToRegister

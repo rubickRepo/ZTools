@@ -4,35 +4,48 @@
     <div class="setting-group">
       <h3 class="setting-group-title">基础</h3>
 
-      <div class="setting-item">
+      <div class="setting-item hotkey-setting-item">
         <div class="setting-label">
           <span>呼出快捷键</span>
           <span class="setting-desc">设置全局快捷键来呼出应用</span>
         </div>
-        <div class="setting-control">
-          <HotkeyInput v-model="hotkey" :platform="platform" @change="handleHotkeyChange" />
-          <button
-            v-if="hotkey !== defaultHotkey"
-            class="btn btn-icon"
-            title="重置"
-            @click="resetHotkey"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="1 0 18 18"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+        <div class="setting-control-column">
+          <div class="setting-control">
+            <HotkeyInput v-model="hotkey" :platform="platform" @change="handleHotkeyChange" />
+            <button
+              v-if="hotkey !== defaultHotkey"
+              class="btn btn-icon"
+              title="重置"
+              @click="resetHotkey"
             >
-              <path
-                d="M14.5 9C14.5 11.4853 12.4853 13.5 10 13.5C7.51472 13.5 5.5 11.4853 5.5 9C5.5 6.51472 7.51472 4.5 10 4.5C11.6569 4.5 13.0943 5.41421 13.8536 6.75M14 4V7H11"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
+              <svg
+                width="20"
+                height="20"
+                viewBox="1 0 18 18"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14.5 9C14.5 11.4853 12.4853 13.5 10 13.5C7.51472 13.5 5.5 11.4853 5.5 9C5.5 6.51472 7.51472 4.5 10 4.5C11.6569 4.5 13.0943 5.41421 13.8536 6.75M14 4V7H11"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="hotkey-presets">
+            <button
+              v-for="preset in hotkeyPresets"
+              :key="preset.value"
+              class="hotkey-preset-btn"
+              :class="{ active: hotkey === preset.value }"
+              @click="applyHotkeyPreset(preset.value)"
+            >
+              {{ preset.label }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -349,7 +362,7 @@
         </div>
       </div>
 
-      <div class="setting-item">
+      <div class="setting-item tab-target-setting-item">
         <div class="setting-label">
           <span>Tab 键目标指令</span>
           <span class="setting-desc"
@@ -357,36 +370,47 @@
             对话等场景</span
           >
         </div>
-        <div class="setting-control">
-          <input
-            v-model="tabTargetCommand"
-            type="text"
-            class="input"
-            placeholder="例如：AI助手/对话"
-            @blur="handleTabTargetChange"
-            @keyup.enter="handleTabTargetChange"
-          />
-          <button
-            class="btn btn-icon"
-            title="清除"
-            :style="{ visibility: tabTargetCommand ? 'visible' : 'hidden' }"
-            @click="handleClearTabTarget"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+        <div class="setting-control-column">
+          <div class="setting-control">
+            <input
+              v-model="tabTargetCommand"
+              type="text"
+              class="input"
+              placeholder="例如：AI助手/对话"
+              @blur="handleTabTargetChange"
+              @keyup.enter="handleTabTargetChange"
+            />
+            <button
+              v-if="tabTargetCommand"
+              class="btn btn-icon"
+              title="清除"
+              @click="handleClearTabTarget"
             >
-              <path
-                d="M6 6L14 14M14 6L6 14"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-              />
-            </svg>
-          </button>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 6L14 14M14 6L6 14"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="hotkey-presets">
+            <button
+              class="hotkey-preset-btn"
+              :class="{ active: tabTargetCommand === 'AI助手/AI对话' }"
+              @click="applyTabTargetPreset('AI助手/AI对话')"
+            >
+              AI提问
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -596,9 +620,9 @@
             @keyup.enter="handleFloatingBallDoubleClickChange"
           />
           <button
+            v-if="floatingBallDoubleClickCommand"
             class="btn btn-icon"
             title="清除"
-            :style="{ visibility: floatingBallDoubleClickCommand ? 'visible' : 'hidden' }"
             @click="handleClearFloatingBallDoubleClick"
           >
             <svg
@@ -815,6 +839,20 @@ const defaultHotkey = computed(() => {
   return platform.value === 'win32' ? 'Alt+Z' : 'Option+Z'
 })
 
+// 快捷键预设选项（根据平台）
+const hotkeyPresets = computed(() => {
+  if (platform.value === 'win32') {
+    return [
+      { label: 'Alt + Space', value: 'Alt+Space' },
+      { label: 'Ctrl + Space', value: 'Ctrl+Space' }
+    ]
+  }
+  return [
+    { label: 'Command + Space', value: 'Command+Space' },
+    { label: 'Option + Space', value: 'Option+Space' }
+  ]
+})
+
 // 本地状态（替代 windowStore）
 const theme = ref<ThemeType>('system')
 const primaryColor = ref<PrimaryColor>('blue')
@@ -925,6 +963,7 @@ const defaultPlaceholder = DEFAULT_PLACEHOLDER
 
 // 处理快捷键变化
 async function handleHotkeyChange(newHotkey: string): Promise<void> {
+  const previousHotkey = hotkey.value
   try {
     // 调用 IPC 更新全局快捷键
     const result = await window.ztools.internal.updateShortcut(newHotkey)
@@ -933,11 +972,34 @@ async function handleHotkeyChange(newHotkey: string): Promise<void> {
       await saveSettings()
       console.log('新快捷键设置成功:', hotkey.value)
     } else {
+      // 设置失败（被占用等），还原为之前的快捷键
+      hotkey.value = previousHotkey
       error(`快捷键设置失败: ${result.error || '未知错误'}`)
     }
   } catch (err: any) {
+    hotkey.value = previousHotkey
     console.error('设置快捷键失败:', err)
     error(`设置快捷键失败: ${err.message || '未知错误'}`)
+  }
+}
+
+// 应用快捷键预设
+async function applyHotkeyPreset(preset: string): Promise<void> {
+  const previousHotkey = hotkey.value
+  try {
+    const result = await window.ztools.internal.updateShortcut(preset)
+    if (result.success) {
+      hotkey.value = preset
+      await saveSettings()
+      console.log('快捷键预设已应用:', preset)
+    } else {
+      hotkey.value = previousHotkey
+      error(`快捷键设置失败: ${result.error || '未知错误'}`)
+    }
+  } catch (err: any) {
+    hotkey.value = previousHotkey
+    console.error('应用快捷键预设失败:', err)
+    error(`应用快捷键预设失败: ${err.message || '未知错误'}`)
   }
 }
 
@@ -1198,6 +1260,18 @@ async function handleClearTabTarget(): Promise<void> {
     console.log('Tab 键目标指令已清除')
   } catch (error) {
     console.error('清除 Tab 键目标指令失败:', error)
+  }
+}
+
+// 应用 Tab 键目标指令预设
+async function applyTabTargetPreset(preset: string): Promise<void> {
+  try {
+    tabTargetCommand.value = preset
+    await saveSettings()
+    await window.ztools.internal.updateTabTarget(preset)
+    console.log('Tab 键目标指令预设已应用:', preset)
+  } catch (err) {
+    console.error('应用 Tab 键目标指令预设失败:', err)
   }
 }
 
@@ -1988,4 +2062,47 @@ onMounted(() => {
 }
 
 /* 自定义按钮 */
+
+/* 快捷键设置项 */
+.hotkey-setting-item,
+.tab-target-setting-item {
+  align-items: flex-start;
+}
+
+.setting-control-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.hotkey-presets {
+  display: flex;
+  gap: 6px;
+}
+
+.hotkey-preset-btn {
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.hotkey-preset-btn:hover {
+  color: var(--primary-color);
+  background: var(--primary-light-bg);
+  border-color: var(--primary-color);
+}
+
+.hotkey-preset-btn.active {
+  color: var(--primary-color);
+  background: var(--primary-light-bg);
+  border-color: var(--primary-color);
+  font-weight: 500;
+}
 </style>

@@ -26,6 +26,7 @@ class DoubleTapManager {
   private lastModifierUp: { modifier: string; time: number } | null = null
   private nonModifierPressed = false
   private started = false
+  private listenersRegistered = false
 
   // 双击最大间隔（毫秒）
   private readonly DOUBLE_TAP_INTERVAL = 400
@@ -72,8 +73,12 @@ class DoubleTapManager {
     if (this.started) return
     this.started = true
 
-    uIOhook.on('keydown', (e) => this.handleKeyDown(e))
-    uIOhook.on('keyup', (e) => this.handleKeyUp(e))
+    // 只注册一次事件监听器，避免重复注册导致事件多次触发
+    if (!this.listenersRegistered) {
+      this.listenersRegistered = true
+      uIOhook.on('keydown', (e) => this.handleKeyDown(e))
+      uIOhook.on('keyup', (e) => this.handleKeyUp(e))
+    }
 
     try {
       uIOhook.start()
