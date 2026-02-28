@@ -7,6 +7,7 @@ import { applyWindowMaterial } from '../utils/windowUtils'
 import { GLOBAL_SCROLLBAR_CSS } from './globalStyles.js'
 import lmdbInstance from './lmdb/lmdbInstance'
 import devToolsShortcut, { getDevToolsMode } from '../utils/devToolsShortcut'
+import { WINDOW_WIDTH } from '../common/constants'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -153,8 +154,8 @@ class DetachedWindowManager {
           trafficLightPosition: { x: 15, y: 18 } // macOS 交通灯垂直居中
         }),
         resizable: true,
-        minWidth: 400,
-        minHeight: 300,
+        minWidth: WINDOW_WIDTH,
+        minHeight: 52,
         hasShadow: true, // 启用窗口阴影（可调整为 false 来移除阴影）
         webPreferences: {
           preload: path.join(__dirname, '../preload/index.js'),
@@ -556,6 +557,34 @@ class DetachedWindowManager {
         info.window.webContents.send('update-window-material', material)
       } catch (error) {
         console.error(`[DetachedWindow] 更新分离窗口 ${windowId} 材质失败:`, error)
+      }
+    }
+  }
+
+  /**
+   * 设置分离窗口中插件视图的高度
+   */
+  public setExpendHeight(webContentsId: number, height: number): void {
+    for (const info of this.detachedWindowMap.values()) {
+      if (info.view.webContents.id === webContentsId) {
+        if (info.window.isDestroyed()) return
+
+        const bounds = info.window.getContentBounds()
+        const newWindowHeight = height + DETACHED_TITLEBAR_HEIGHT
+
+        // 调整窗口大小
+        info.window.setContentSize(bounds.width, newWindowHeight)
+
+        // 调整插件视图大小
+        info.view.setBounds({
+          x: 0,
+          y: DETACHED_TITLEBAR_HEIGHT,
+          width: bounds.width,
+          height: height
+        })
+
+        console.log('[DetachedWindow] 设置分离窗口插件高度:', height)
+        return
       }
     }
   }

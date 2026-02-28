@@ -1,5 +1,5 @@
-import { ipcMain } from 'electron'
-import { WINDOW_DEFAULT_HEIGHT, WINDOW_INITIAL_HEIGHT, WINDOW_WIDTH } from '../../common/constants.js'
+import { ipcMain, screen } from 'electron'
+import { WINDOW_INITIAL_HEIGHT, WINDOW_WIDTH } from '../../common/constants.js'
 import windowManager from '../../managers/windowManager.js'
 
 // 窗口材质类型
@@ -76,8 +76,10 @@ export class WindowAPI {
     if (this.mainWindow) {
       // 使用固定宽度常量，避免多显示器 DPI 缩放导致 getSize() 返回被缩放的值
       const width = WINDOW_WIDTH
-      // 限制高度范围: 最小初始高度, 最大高度
-      const newHeight = Math.max(WINDOW_INITIAL_HEIGHT, Math.min(height, WINDOW_DEFAULT_HEIGHT))
+      // 限制高度范围: 最小初始高度, 最大不超过当前屏幕可用高度
+      const display = screen.getDisplayNearestPoint(screen.getCursorScreenPoint())
+      const maxHeight = display.workAreaSize.height
+      const newHeight = Math.max(WINDOW_INITIAL_HEIGHT, Math.min(height, maxHeight))
 
       // 临时启用 resizable 以允许代码调整大小
       this.mainWindow.setResizable(true)

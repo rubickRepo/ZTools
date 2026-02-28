@@ -21,7 +21,7 @@ export class PluginUIAPI {
     ipcMain.handle('show-notification', (event, body: string) => this.showNotification(event, body))
 
     // 设置插件高度
-    ipcMain.handle('set-expend-height', (_event, height: number) => this.setExpendHeight(height))
+    ipcMain.handle('set-expend-height', (event, height: number) => this.setExpendHeight(event, height))
 
     // 子输入框相关
     ipcMain.handle('set-sub-input', (event, placeholder?: string, isFocus?: boolean) =>
@@ -79,8 +79,12 @@ export class PluginUIAPI {
     }
   }
 
-  private setExpendHeight(height: number): void {
-    if (this.pluginManager) {
+  private setExpendHeight(event: Electron.IpcMainInvokeEvent, height: number): void {
+    // 检查是否在分离窗口中
+    const detachedWindow = detachedWindowManager.getWindowByPluginWebContents(event.sender.id)
+    if (detachedWindow) {
+      detachedWindowManager.setExpendHeight(event.sender.id, height)
+    } else if (this.pluginManager) {
       this.pluginManager.setExpendHeight(height)
     }
   }
