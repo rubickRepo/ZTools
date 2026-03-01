@@ -404,7 +404,7 @@ function getCurrentList(): CommandItem[] {
   return mode.value === 'pinned' ? pinnedCommands.value : searchResults.value
 }
 
-// 启动指令（携带剪贴板内容）
+// 启动指令（携带剪贴板内容和窗口信息）
 async function launch(cmd: CommandItem): Promise<void> {
   try {
     console.log('启动指令:', cmd, '剪贴板内容:', currentClipboardContent.value?.type)
@@ -412,7 +412,8 @@ async function launch(cmd: CommandItem): Promise<void> {
     const launchData = JSON.parse(
       JSON.stringify({
         ...cmd,
-        clipboardContent: currentClipboardContent.value
+        clipboardContent: currentClipboardContent.value,
+        windowInfo: currentWindowInfo.value
       })
     )
     await window.ztools.superPanelLaunch(launchData)
@@ -539,9 +540,7 @@ onMounted(() => {
 
     // 自动发起窗口匹配搜索（用于判断是否需要闪动图标）
     if (data.windowInfo) {
-      window.ztools.superPanelSearchWindowCommands(
-        JSON.parse(JSON.stringify(data.windowInfo))
-      )
+      window.ztools.superPanelSearchWindowCommands(JSON.parse(JSON.stringify(data.windowInfo)))
     }
 
     if (data.type === 'pinned') {

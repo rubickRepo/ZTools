@@ -848,71 +848,76 @@ onMounted(async () => {
   })
 
   // 监听超级面板启动事件（由主进程从超级面板转发）
-  window.ztools.onSuperPanelLaunch(async (data: { command: any; clipboardContent?: any }) => {
-    console.log(
-      '[超级面板启动] 收到启动事件:',
-      data.command?.name,
-      'clipboardType:',
-      data.clipboardContent?.type
-    )
-    const cmd = data.command
-    const cc = data.clipboardContent
+  window.ztools.onSuperPanelLaunch(
+    async (data: { command: any; clipboardContent?: any; windowInfo?: any }) => {
+      console.log(
+        '[超级面板启动] 收到启动事件:',
+        data.command?.name,
+        'clipboardType:',
+        data.clipboardContent?.type
+      )
+      const cmd = data.command
+      const cc = data.clipboardContent
 
-    // 构造 payload（复用 SearchResults 中 handleSelectApp 的逻辑）
-    let payload: any = ''
-    let type = cmd.cmdType || 'text'
+      // 构造 payload（复用 SearchResults 中 handleSelectApp 的逻辑）
+      let payload: any = ''
+      let type = cmd.cmdType || 'text'
 
-    if (cc) {
-      if (cc.type === 'text' && cc.text) {
-        if (cmd.cmdType === 'over' || cmd.cmdType === 'regex') {
-          payload = cc.text
-        } else {
-          payload = cc.text
+      if (cmd.cmdType === 'window' && data.windowInfo) {
+        // 窗口匹配指令：payload 为窗口信息
+        payload = data.windowInfo
+      } else if (cc) {
+        if (cc.type === 'text' && cc.text) {
+          if (cmd.cmdType === 'over' || cmd.cmdType === 'regex') {
+            payload = cc.text
+          } else {
+            payload = cc.text
+          }
+        } else if (cc.type === 'image' && cc.image) {
+          payload = cc.image
+          type = 'img'
+        } else if (cc.type === 'file' && cc.files) {
+          payload = cc.files.map((file: any) => ({
+            isFile: !file.isDirectory,
+            isDirectory: file.isDirectory,
+            name: file.name,
+            path: file.path
+          }))
+          type = 'files'
         }
-      } else if (cc.type === 'image' && cc.image) {
-        payload = cc.image
-        type = 'img'
-      } else if (cc.type === 'file' && cc.files) {
-        payload = cc.files.map((file: any) => ({
-          isFile: !file.isDirectory,
-          isDirectory: file.isDirectory,
-          name: file.name,
-          path: file.path
-        }))
-        type = 'files'
+      }
+
+      try {
+        await window.ztools.launch({
+          path: cmd.path,
+          type: cmd.type || 'plugin',
+          featureCode: cmd.featureCode,
+          name: cmd.name,
+          cmdType: cmd.cmdType || type,
+          param: {
+            payload,
+            type,
+            inputState: {
+              searchQuery: cc?.type === 'text' ? cc.text || '' : '',
+              pastedImage: cc?.type === 'image' ? cc.image : null,
+              pastedFiles:
+                cc?.type === 'file'
+                  ? cc.files.map((file: any) => ({
+                      isFile: !file.isDirectory,
+                      isDirectory: file.isDirectory,
+                      name: file.name,
+                      path: file.path
+                    }))
+                  : null,
+              pastedText: cc?.type === 'text' ? cc.text : null
+            }
+          }
+        })
+      } catch (error) {
+        console.error('[超级面板启动] 启动失败:', error)
       }
     }
-
-    try {
-      await window.ztools.launch({
-        path: cmd.path,
-        type: cmd.type || 'plugin',
-        featureCode: cmd.featureCode,
-        name: cmd.name,
-        cmdType: cmd.cmdType || type,
-        param: {
-          payload,
-          type,
-          inputState: {
-            searchQuery: cc?.type === 'text' ? cc.text || '' : '',
-            pastedImage: cc?.type === 'image' ? cc.image : null,
-            pastedFiles:
-              cc?.type === 'file'
-                ? cc.files.map((file: any) => ({
-                    isFile: !file.isDirectory,
-                    isDirectory: file.isDirectory,
-                    name: file.name,
-                    path: file.path
-                  }))
-                : null,
-            pastedText: cc?.type === 'text' ? cc.text : null
-          }
-        }
-      })
-    } catch (error) {
-      console.error('[超级面板启动] 启动失败:', error)
-    }
-  })
+  )
 
   // 全局键盘事件监听
   window.addEventListener('keydown', handleKeydown)

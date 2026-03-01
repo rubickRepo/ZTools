@@ -351,7 +351,7 @@ const api = {
     ipcRenderer.invoke('super-panel:unpin-command', path, featureCode),
   pinToSuperPanel: (command: any) => ipcRenderer.invoke('super-panel:pin-command', command),
   getSuperPanelPinned: () => ipcRenderer.invoke('super-panel:get-pinned'),
-  onSuperPanelLaunch: (callback: (data: { command: any; clipboardContent?: any }) => void) => {
+  onSuperPanelLaunch: (callback: (data: { command: any; clipboardContent?: any; windowInfo?: any }) => void) => {
     ipcRenderer.on('super-panel-launch', (_event, data) => callback(data))
   },
   // 超级面板窗口匹配

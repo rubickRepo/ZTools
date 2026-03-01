@@ -1,5 +1,5 @@
 import { app, ipcMain, shell } from 'electron'
-import { spawn, execFile } from 'child_process'
+import { execFile } from 'child_process'
 import type { PluginManager } from '../../managers/pluginManager'
 import { promises as fs } from 'fs'
 import path from 'path'

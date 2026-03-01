@@ -358,7 +358,7 @@ declare global {
       pinToSuperPanel: (command: any) => Promise<{ success: boolean; error?: string }>
       getSuperPanelPinned: () => Promise<any[]>
       onSuperPanelLaunch: (
-        callback: (data: { command: any; clipboardContent?: any }) => void
+        callback: (data: { command: any; clipboardContent?: any; windowInfo?: any }) => void
       ) => void
       // 超级面板窗口匹配
       superPanelSearchWindowCommands: (windowInfo: {
