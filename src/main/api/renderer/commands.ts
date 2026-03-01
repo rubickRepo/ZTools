@@ -1,5 +1,5 @@
 import { app, ipcMain, shell } from 'electron'
-import { spawn } from 'child_process'
+import { spawn, execFile } from 'child_process'
 import type { PluginManager } from '../../managers/pluginManager'
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -462,16 +462,38 @@ export class AppsAPI {
     }
 
     try {
-      // 使用 PowerShell Start-Process -Verb RunAs 触发 UAC 提权
       const escapedPath = appPath.replace(/'/g, "''")
-      const psCommand = `Start-Process -FilePath '${escapedPath}' -Verb RunAs`
+      let psCommand: string
 
-      const subprocess = spawn(
+      if (appPath.toLowerCase().endsWith('.lnk')) {
+        // .lnk 快捷方式：先解析目标路径，再对目标可执行文件进行提权启动
+        // 注意：$args 是 PowerShell 保留变量，必须用其他变量名
+        psCommand = [
+          `$lnk = (New-Object -ComObject WScript.Shell).CreateShortcut('${escapedPath}');`,
+          `$sp = @{ FilePath = $lnk.TargetPath; Verb = 'RunAs' };`,
+          `if ($lnk.Arguments) { $sp.ArgumentList = $lnk.Arguments };`,
+          `Start-Process @sp`
+        ].join(' ')
+      } else {
+        // 非 .lnk 文件：直接提权启动
+        psCommand = `Start-Process -FilePath '${escapedPath}' -Verb RunAs`
+      }
+
+      console.log(`[Commands] 以管理员身份启动: ${appPath}`)
+      console.log(`[Commands] PowerShell 命令: ${psCommand}`)
+
+      execFile(
         'powershell.exe',
         ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand],
-        { detached: true, stdio: 'ignore' }
+        (error, _stdout, stderr) => {
+          if (error) {
+            console.error('[Commands] 管理员启动失败:', error.message)
+          }
+          if (stderr) {
+            console.error('[Commands] 管理员启动 stderr:', stderr)
+          }
+        }
       )
-      subprocess.unref()
 
       console.log(`[Commands] 以管理员身份启动: ${appPath}`)
 
