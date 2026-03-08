@@ -11,6 +11,8 @@ import windowManager from '../../managers/windowManager'
 import { sleep } from '../../utils/common.js'
 import { downloadFile } from '../../utils/download.js'
 import { httpGet } from '../../utils/httpRequest.js'
+import AdmZip from 'adm-zip'
+import { isValidZpx } from '../../utils/zpxArchive.js'
 import { packZpx, extractZpx, readTextFromZpx, readFileFromZpx } from '../../utils/zpxArchive.js'
 import { pluginFeatureAPI } from '../plugin/feature'
 import webSearchAPI from './webSearch'
@@ -370,6 +372,81 @@ export class PluginsAPI {
       return { success: true, plugin: pluginInfo }
     } catch (error: unknown) {
       console.error('[Plugins] 安装插件失败:', error)
+      return { success: false, error: error instanceof Error ? error.message : '安装失败' }
+    }
+  }
+
+  /**
+   * 从 ZIP 安装插件（兼容旧格式）
+   * 用于市场下载的旧 ZIP 格式插件，过渡期结束后移除
+   * @param zipPath .zip 文件路径
+   */
+  private async _installPluginFromZip(zipPath: string): Promise<any> {
+    await fs.mkdir(PLUGIN_DIR, { recursive: true })
+
+    try {
+      const zip = new AdmZip(zipPath)
+      const pluginJsonEntry = zip.readAsText('plugin.json')
+      if (!pluginJsonEntry) {
+        return { success: false, error: 'plugin.json 文件不存在' }
+      }
+
+      let pluginConfig: any
+      try {
+        pluginConfig = JSON.parse(pluginJsonEntry)
+      } catch {
+        return { success: false, error: 'plugin.json 格式错误' }
+      }
+
+      if (!pluginConfig.name) {
+        return { success: false, error: 'plugin.json 缺少 name 字段' }
+      }
+
+      const pluginName = pluginConfig.name
+      const pluginPath = path.join(PLUGIN_DIR, pluginName)
+
+      try {
+        await fs.access(pluginPath)
+        return { success: false, error: '插件目录已存在' }
+      } catch {
+        // 不存在，继续
+      }
+
+      const existingPlugins = await this.getPlugins()
+      const validation = this.validatePluginConfig(pluginConfig, existingPlugins)
+      if (!validation.valid) {
+        return { success: false, error: validation.error }
+      }
+
+      // ZIP 解压到目标目录
+      zip.extractAllTo(pluginPath, true)
+
+      const pluginInfo = {
+        name: pluginConfig.name,
+        title: pluginConfig.title,
+        version: pluginConfig.version,
+        description: pluginConfig.description || '',
+        author: pluginConfig.author || '',
+        homepage: pluginConfig.homepage || '',
+        logo: pluginConfig.logo ? pathToFileURL(path.join(pluginPath, pluginConfig.logo)).href : '',
+        main: pluginConfig.main,
+        preload: pluginConfig.preload,
+        features: pluginConfig.features,
+        path: pluginPath,
+        isDevelopment: false,
+        installedAt: new Date().toISOString()
+      }
+
+      let plugins: any = databaseAPI.dbGet('plugins')
+      if (!plugins) plugins = []
+      plugins.push(pluginInfo)
+      databaseAPI.dbPut('plugins', plugins)
+
+      console.log('[Plugins] ZIP 兼容安装完成:', pluginName)
+      this.mainWindow?.webContents.send('plugins-changed')
+      return { success: true, plugin: pluginInfo }
+    } catch (error: unknown) {
+      console.error('[Plugins] ZIP 兼容安装失败:', error)
       return { success: false, error: error instanceof Error ? error.message : '安装失败' }
     }
   }
@@ -853,8 +930,12 @@ export class PluginsAPI {
       }
 
       console.log('[Plugins] 插件下载完成:', tempFilePath)
-      // 使用 ZPX 安装
-      const result = await this._installPluginFromZpx(tempFilePath)
+      // 自动检测格式：ZPX（gzip）或 ZIP（旧格式兼容）
+      const isZpx = await isValidZpx(tempFilePath)
+      const result = isZpx
+        ? await this._installPluginFromZpx(tempFilePath)
+        : await this._installPluginFromZip(tempFilePath)
+      console.log(`[Plugins] 市场插件格式: ${isZpx ? 'ZPX' : 'ZIP（兼容）'}`)
 
       try {
         await fs.unlink(tempFilePath)
