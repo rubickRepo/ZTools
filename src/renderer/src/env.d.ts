@@ -25,7 +25,7 @@ declare global {
       isWindows: () => Promise<boolean>
       launch: (options: {
         path: string
-        type?: 'direct' | 'plugin'
+        type?: 'direct' | 'plugin' | 'file'
         featureCode?: string
         param?: any
         name?: string

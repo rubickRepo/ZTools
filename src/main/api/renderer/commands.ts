@@ -272,7 +272,7 @@ export class AppsAPI {
    */
   public async launch(options: {
     path: string
-    type?: 'direct' | 'plugin' | 'builtin'
+    type?: 'direct' | 'plugin' | 'builtin' | 'file'
     featureCode?: string
     param?: any
     name?: string // cmd 名称（用于历史记录显示）
@@ -419,6 +419,17 @@ export class AppsAPI {
         }
 
         return { success: true }
+      } else if (type === 'file') {
+        // 文件/文件夹类型：在文件管理器中定位
+        console.log('[Commands] 在文件管理器中定位:', appPath)
+        shell.showItemInFolder(appPath)
+
+        // 添加到历史记录
+        this.addToHistory({ path: appPath, type: 'file', name, cmdType: 'text' })
+
+        // 通知渲染进程应用已启动（清空搜索框等）
+        this.notifyRenderer('app-launched')
+        this.mainWindow?.hide()
       } else {
         // 直接启动（app / system-setting / local-shortcut / UWP / 协议链接）
         // 检查是否为本地启动项（需要 shell.openPath 而非 launchApp）

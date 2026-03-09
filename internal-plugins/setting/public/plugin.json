@@ -114,6 +114,19 @@
       ]
     },
     {
+      "code": "function.pin-to-search",
+      "explain": "固定到搜索框",
+      "icon": "logo.png",
+      "cmds": [
+        {
+          "type": "files",
+          "label": "固定到搜索框",
+          "fileType": "all",
+          "maxLength": 99
+        }
+      ]
+    },
+    {
       "code": "function.exit",
       "explain": "退出 ZTools",
       "icon": "logo.png",
