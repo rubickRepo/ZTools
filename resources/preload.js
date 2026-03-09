@@ -113,6 +113,59 @@ function getSharp() {
   return _sharp
 }
 
+// ── zbrowser 客户端工厂（每次调用 getter 返回新实例）──
+
+/**
+ * 创建 zbrowser 客户端实例
+ *
+ * 加载 client.js 并注入 run() 方法（client.js 本身不包含 run）。
+ * run() 将操作队列通过 ipcInvoke 发送到主进程的 ZBrowserExecutor。
+ *
+ * @returns {object} ZBrowserClient 实例（带 run 方法）
+ */
+function createZBrowserClient() {
+  const { ZBrowserClient } = require('./zbrowser/client')
+  const client = new ZBrowserClient()
+  client.run = async function (ubrowserIdOrOptions, options) {
+    if (this._queue.length === 0) throw new Error('no actions run')
+    // 复制队列并清空（允许客户端实例复用）
+    const queue = [...this._queue]
+    this._queue = []
+
+    // 解析参数：run() / run(options) / run(ubrowserId) / run(ubrowserId, options)
+    let ubrowserId
+    let runOptions = {}
+    if (typeof ubrowserIdOrOptions === 'number') {
+      ubrowserId = ubrowserIdOrOptions
+      if (typeof options === 'object' && options !== null) runOptions = options
+    } else if (typeof ubrowserIdOrOptions === 'object' && ubrowserIdOrOptions !== null) {
+      runOptions = ubrowserIdOrOptions
+    }
+    // 如果未指定 ubrowserId 但实例上有保留的 _windowId，自动复用
+    if (ubrowserId === undefined && this._windowId) {
+      ubrowserId = this._windowId
+    }
+
+    const result = await ipcInvoke('runZBrowser', { ubrowserId, options: runOptions, queue })
+    if (result.error) {
+      const err = new Error(result.message)
+      err.data = result.data
+      throw err
+    }
+    // 如果窗口保留（可见窗口加入空闲池），记录 windowId 以便后续 run() 复用
+    if (result.windowId) {
+      this._windowId = result.windowId
+    }
+    // uTools 兼容：返回数组，最后一个元素是窗口信息对象
+    const data = result.data || []
+    if (result.windowInfo) {
+      data.push(result.windowInfo)
+    }
+    return data
+  }
+  return client
+}
+
 window.ztools = {
   getAppName: () => 'ZTools',
   // 获取拖放文件的路径（Electron webUtils）
@@ -779,7 +832,32 @@ window.ztools = {
   },
 
   // Sharp 图像处理
-  sharp: (input, options) => getSharp()(input, options)
+  sharp: (input, options) => getSharp()(input, options),
+
+  // ── zbrowser / ubrowser 浏览器自动化 API ──
+
+  /** zbrowser 客户端（核心实现），每次访问返回新的 Builder 实例 */
+  get zbrowser() {
+    return createZBrowserClient()
+  },
+  /** ubrowser 兼容入口（转发到 zbrowser），与 uTools API 一致 */
+  get ubrowser() {
+    return createZBrowserClient()
+  },
+  /** 获取当前插件的空闲 zbrowser 窗口列表（同步 API） */
+  getIdleUBrowsers: () => ipcSendSync('getIdleZBrowsers'),
+  /**
+   * 设置 zbrowser Session 代理
+   * ⚠️ 破坏性变更：uTools 为同步 API，ZTools 改为异步（返回 Promise<boolean>）
+   */
+  setUBrowserProxy: (config) => ipcInvoke('setZBrowserProxy', config),
+  /**
+   * 清除 zbrowser Session 缓存
+   * ⚠️ 破坏性变更：uTools 为同步 API，ZTools 改为异步（返回 Promise<boolean>）
+   */
+  clearUBrowserCache: () => ipcInvoke('clearZBrowserCache'),
+  /** ubrowserLogin 兼容桩（ZTools 暂不支持，返回 null） */
+  ubrowserLogin: () => ipcInvoke('ubrowserLogin')
 }
 
 electron.ipcRenderer.on('on-plugin-enter', (event, launchParam) => {
