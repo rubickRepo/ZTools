@@ -206,18 +206,22 @@ window.ztools = {
   },
   // 模拟鼠标移动
   simulateMouseMove: (x, y) => {
+    console.log('插件请求 simulateMouseMove', { x, y })
     return electron.ipcRenderer.sendSync('simulate-mouse-move', x, y)
   },
   // 模拟鼠标左键单击
   simulateMouseClick: (x, y) => {
+    console.log('插件请求 simulateMouseClick', { x, y })
     return electron.ipcRenderer.sendSync('simulate-mouse-click', x, y)
   },
   // 模拟鼠标左键双击
   simulateMouseDoubleClick: (x, y) => {
+    console.log('插件请求 simulateMouseDoubleClick', { x, y })
     return electron.ipcRenderer.sendSync('simulate-mouse-double-click', x, y)
   },
   // 模拟鼠标右键单击
   simulateMouseRightClick: (x, y) => {
+    console.log('插件请求 simulateMouseRightClick', { x, y })
     return electron.ipcRenderer.sendSync('simulate-mouse-right-click', x, y)
   },
   onPluginEnter: async (callback) => {
