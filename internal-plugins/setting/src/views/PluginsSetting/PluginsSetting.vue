@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useToast, AdaptiveIcon } from '@/components'
 import { PluginDetail, NpmInstallPanel } from './components'
 import { compareVersions, upgradeInstalledPluginFromMarket, weightedSearch } from '@/utils'
@@ -607,8 +607,7 @@ useJumpFunction((state) => {
   if (state.localAddDevPluginFilePath) {
     void addDevPluginByFilePath(state.localAddDevPluginFilePath)
   } else if (state.autoOpenPluginName) {
-    setSubInput(state.autoOpenPluginName)
-    openPluginByName(state.autoOpenPluginName)
+    void openPluginByName(state.autoOpenPluginName)
   }
 })
 
@@ -618,8 +617,20 @@ onUnmounted(() => {
 })
 
 // 打开指定插件名称的详情
-function openPluginByName(pluginName: string): void {
-  if (!pluginName || plugins.value.length === 0) return
+async function openPluginByName(pluginName: string): Promise<void> {
+  if (!pluginName) return
+
+  // 如果插件列表还没加载完，等待加载完成
+  if (plugins.value.length === 0 && isLoading.value) {
+    await new Promise<void>((resolve) => {
+      const unwatch = watch(isLoading, (loading) => {
+        if (!loading) {
+          unwatch()
+          resolve()
+        }
+      })
+    })
+  }
 
   const plugin = plugins.value.find((p) => p.name === pluginName)
   if (plugin) {

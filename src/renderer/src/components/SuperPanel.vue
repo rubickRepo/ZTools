@@ -892,6 +892,8 @@ function scrollToTop(): void {
   })
 }
 
+let cleanupContextMenuListener: (() => void) | null = null
+
 onMounted(() => {
   // 监听超级面板数据（从主进程发送）
   window.ztools.onSuperPanelData((data) => {
@@ -1022,7 +1024,8 @@ onMounted(() => {
   })
 
   // 监听右键菜单命令
-  window.ztools.onContextMenuCommand(async (command: string) => {
+  cleanupContextMenuListener?.()
+  cleanupContextMenuListener = window.ztools.onContextMenuCommand(async (command: string) => {
     console.log('[SuperPanel] 收到右键菜单命令:', command)
     if (command.startsWith('unpin:')) {
       const jsonStr = command.replace('unpin:', '')
@@ -1116,6 +1119,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('focusout', handleFocusOut)
+  cleanupContextMenuListener?.()
+  cleanupContextMenuListener = null
 })
 </script>
 

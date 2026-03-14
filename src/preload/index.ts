@@ -88,7 +88,11 @@ const api = {
   setAssemblyTarget: (token: string) => ipcRenderer.invoke('set-assembly-target', token),
   endAssemblyPlugin: () => ipcRenderer.invoke('end-assembly-plugin'),
   onContextMenuCommand: (callback: (command: string) => void) => {
-    ipcRenderer.on('context-menu-command', (_event, command) => callback(command))
+    const handler = (_event: any, command: string): void => callback(command)
+    ipcRenderer.on('context-menu-command', handler)
+    return (): void => {
+      ipcRenderer.removeListener('context-menu-command', handler)
+    }
   },
   onFocusSearch: (
     callback: (
@@ -494,7 +498,7 @@ declare global {
       hidePlugin: () => void
       setAssemblyTarget: (token: string) => Promise<boolean>
       endAssemblyPlugin: () => Promise<string | null>
-      onContextMenuCommand: (callback: (command: string) => void) => void
+      onContextMenuCommand: (callback: (command: string) => void) => () => void
       onFocusSearch: (
         callback: (
           windowInfo?: {

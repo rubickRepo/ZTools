@@ -785,6 +785,7 @@ watch(
 
 // 用于清理的 ResizeObserver
 let resizeObserver: ResizeObserver | null = null
+let cleanupContextMenuListener: (() => void) | null = null
 
 onMounted(() => {
   // 初始化输入框宽度（updateInputWidth 内部会根据是否有内容来决定宽度）
@@ -814,7 +815,8 @@ onMounted(() => {
   })
 
   // 监听菜单命令
-  window.ztools.onContextMenuCommand(async (command) => {
+  cleanupContextMenuListener?.()
+  cleanupContextMenuListener = window.ztools.onContextMenuCommand(async (command) => {
     if (command === 'open-devtools') {
       window.ztools.openPluginDevTools()
     } else if (command === 'kill-plugin') {
@@ -1062,6 +1064,10 @@ async function handleUpdateClick(): Promise<void> {
 onUnmounted(() => {
   resizeObserver?.disconnect()
   cleanupDrag()
+
+  // 清理右键菜单命令监听
+  cleanupContextMenuListener?.()
+  cleanupContextMenuListener = null
 
   // 清理拖放事件监听
   if (searchBoxRef.value) {

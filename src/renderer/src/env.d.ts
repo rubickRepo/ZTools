@@ -127,7 +127,7 @@ declare global {
       unpinApp: (appPath: string, featureCode?: string, name?: string) => Promise<void>
       updatePinnedOrder: (newOrder: any[]) => Promise<void>
       hidePlugin: () => void
-      onContextMenuCommand: (callback: (command: string) => void) => void
+      onContextMenuCommand: (callback: (command: string) => void) => () => void
       onFocusSearch: (
         callback: (
           windowInfo?: {

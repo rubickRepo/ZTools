@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, nextTick, onMounted, ref, toRaw, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, toRaw, watch } from 'vue'
 import {
   useMainPushResults,
   type MainPushGroup,
@@ -858,13 +858,16 @@ async function handleContextMenuCommand(command: string): Promise<void> {
     try {
       // 从 commandDataStore 中查找设置插件（已安装插件功能）的路径
       const settingCmd = commandDataStore.commands.find(
-        (c) => c.type === 'plugin' && c.pluginName === 'setting' && c.featureCode === 'plugins'
+        (c) =>
+          c.type === 'plugin' &&
+          c.pluginName === 'setting' &&
+          c.featureCode === 'ui.router?router=Plugins'
       )
       if (settingCmd) {
         await window.ztools.launch({
           path: settingCmd.path,
           type: 'plugin',
-          featureCode: 'plugins',
+          featureCode: 'ui.router?router=Plugins',
           name: '已安装插件',
           cmdType: 'text',
           param: {
@@ -943,8 +946,17 @@ function resetCollapseState(): void {
 }
 
 // 初始化
+let cleanupContextMenuListener: (() => void) | null = null
+
 onMounted(() => {
-  window.ztools.onContextMenuCommand(handleContextMenuCommand)
+  // 先清理之前可能残留的监听器
+  cleanupContextMenuListener?.()
+  cleanupContextMenuListener = window.ztools.onContextMenuCommand(handleContextMenuCommand)
+})
+
+onUnmounted(() => {
+  cleanupContextMenuListener?.()
+  cleanupContextMenuListener = null
 })
 
 // 导出方法供父组件调用
