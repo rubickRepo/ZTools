@@ -1,46 +1,60 @@
-# 2.2.1
+# 2.3.0
 
 ## 新功能 (Feat)
 
-- 支持 HTTP API
-- 超级面板支持分组
-- 快捷键设置显示内置快捷键
-- 增加 cmd + F 内置快捷键说明
-- 搜索结果固定到超级面板
-- 搜索框 item 支持取消固定到超级面板
-- Windows 本地应用支持管理员启动
-- 退出命令
-- 关于命令，方便查看版本号
-- 已安装插件置顶，方便插件开发
-- 插件打包图标改成更直观一点的
-- 插件详情删除确认使用自定义组件
+- 新增 MCP 支持
+- 支持通过 WebDAV 同步已安装插件到其他设备
+- 支持 FFmpeg 集成，并为 `utools.runFFmpeg` 增加 `onLog`、`onProgress` 选项
+- 新增 `zbrowser` API，`createBrowserWindow` 打开开发者工具时支持设置「开发者工具位置」
+- 新增 `readCurrentBrowserUrl`、`readCurrentFolderPath`、`getCopyedFiles`、`getFileIcon`、`shellTrashItem`、`shellBeep`、`hideMainWindowXXX`、`redirectHotKeySetting`、`redirectAiModelsSetting` 等 API
+- 支持模拟鼠标 API、屏幕取色 API，并新增取色指令
+- 插件市场支持 Storefront 布局系统，插件详情支持评论区
+- 超级面板支持选中翻译、快速屏蔽应用弹出，并新增 `mod + F` 聚焦子输入框
+- 支持搜索结果右键设置全局快捷键，并优化呼出快捷键交互
+- 新增批量更新插件、双击打开插件安装、清除使用记录、固定文件到搜索框、自动粘贴默认开启
+- 新增锁屏内置系统命令，本地启动支持从主输入框快速添加文件或文件夹
+- 支持插件单例与多开控制，单例插件支持智能重入
+- 应用支持本地化名称和别名搜索
+- 去除最近使用数量限制
 
 ## 修复 (Fix)
 
-- 修复退出应用未关闭 HTTP 服务
-- 修复 Windows 系统扫描目录出现文件占用问题
-- 修复托盘图标多次初始化问题
-- 修复 redirect 跳转未触发 onPluginOut
-- 修复使用 subInputSelect API 后按回车无效
-- 修复分离窗口无法触发 SubInput onChange
-- 修复分离时触发一次 SubInput onChange
-- 修复重复触发 SubInput onChange
-- 修复窗口匹配 payload 为空
-- 修复 Windows 管理员启动无响应
-- 修复添加开发中插件命令失效
-- 修复已安装插件更多按钮图标没对齐
+- 修复设置插件指令进入错误问题
+- 修复 `ztools.onPluginEnter` 晚绑定不触发的问题
+- 修复设置中心无法启动插件的问题
+- 修复无法使用插件 `title` 进行搜索的问题
+- 修复包安装、图标和主题异常，以及已安装插件详情操作按钮不显示问题
+- 修复退出 ZTools 功能缺失问题
+- 修复插件状态未及时刷新、查看插件详情无响应问题
+- 修复 `.html` 限制与跳转时未读取到路由参数的问题
+- 修复最后一个 toast 隐藏后销毁窗口问题
+- 修复 Windows 取色 API、托盘图标点击窗口显隐问题
+- 修复分离运行的插件无法在已安装列表中终止的问题
+- 修复搜索插件市场打开后被带到搜索框、快捷键注册失败及非法快捷键拦截提示问题
+- 修复超级面板翻译偶尔不显示、唤醒搜索框复制文件未自动粘贴问题
 
 ## 优化 (Optimize)
 
-- 启用退出终止插件时，检查是否有子窗口，存在子窗口则不退出
-- HTTP 服务放到关于上面
+- 搜索框、快捷键设置样式与插件留言暗色主题体验优化
+- `mainHide` 指令避免闪烁
+- mac 多语言搜索使用单独指令
+- 优化已安装插件更新检查性能
+- 增加图标内存缓存上限并实现 LRU 淘汰
+- 默认关闭 `backgroundThrottling`，可通过 `pluginSetting.backgroundRunning` 按需开启
+- 替换压缩算法
 
 ## 重构 (Refactor)
 
-- dbGet、dbPut 使用同步
-- redirect 命令使用 title 查找
-- 接口 API 监听事件不支持多次监听
+- 设置中心重构，并移除旧版本设置中心
+- 创建窗口 API 重构，实现基建插件 API
+- 插件打包与安装从 `zip` 重构为 `zpx`，同时兼容旧版本 `zip` 安装
+- 不再使用 `getBitmap` 废弃方法
+- 优化 macOS 应用扫描器名称解析逻辑
+- 插件市场类型提取，并对 Storefront 状态与交互进行整理
 
 ## 其他 (Chore)
 
-- 更新 Windows Native，支持截图窗体识别
+- 新增提交代码钩子
+- Windows 打包能力补充，支持 Windows 二进制编译
+- 支持 mac x64 单独构建/打包，自更新程序支持 Intel
+- 编译脚本优化与 MCP 相关注释补充
