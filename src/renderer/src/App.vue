@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container" :class="{ 'app-container__plugin': currentView === ViewMode.Plugin }">
     <div class="search-window">
       <div :class="['search-box-wrapper', { 'with-divider': currentView === ViewMode.Plugin }]">
         <SearchBox
@@ -1003,15 +1003,17 @@ onUnmounted(() => {
   overflow: hidden; /* 隐藏所有滚动条 */
   border-radius: 8px; /* Windows 11 圆角 */
 }
-
+.app-container__plugin {
+  border-radius: 0;
+}
 .search-window {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--bg-color);
-  overflow: hidden; /* 隐藏所有滚动条 */
-  border-radius: 8px; /* Windows 11 圆角 */
+  //overflow: hidden; /* 隐藏所有滚动条 */
+  //border-radius: 8px; /* Windows 11 圆角 */
 }
 
 .search-box-wrapper {
