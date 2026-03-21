@@ -3,24 +3,11 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useToast } from '@/components'
 import { compareVersions, upgradeInstalledPluginFromMarket, weightedSearch } from '@/utils'
 import { PluginDetail, PluginCard, CategoryCard, CategoryDetail } from './components'
+import type { Plugin, CategoryInfo, CategoryLayoutSection } from './components'
 import { useJumpFunction, useZtoolsSubInput } from '@/composables'
 import { PluginMarketSettingJumpFunction } from '@/views/PluginMarketSetting/PluginMarketSetting'
 
 const { success, error, confirm } = useToast()
-
-interface Plugin {
-  name: string
-  title: string
-  description: string
-  iconText?: string
-  iconColor?: string
-  logo?: string
-  version: string
-  downloadUrl: string
-  installed: boolean
-  path?: string
-  localVersion?: string
-}
 
 interface BannerItem {
   image: string
@@ -35,21 +22,6 @@ interface CategorySummary {
   icon?: string
   showDescription: boolean
   pluginCount: number
-}
-
-interface CategoryInfo {
-  key: string
-  title: string
-  description?: string
-  icon?: string
-  plugins: Plugin[]
-}
-
-interface CategoryLayoutSection {
-  type: string
-  title?: string
-  count?: number
-  plugins?: string[]
 }
 
 interface StorefrontSection {
@@ -204,14 +176,29 @@ async function fetchPlugins(): Promise<void> {
           categoryLayouts.value = typedMarketResult.storefront.categoryLayouts
         }
 
-        // 处理 sections
-        storefrontSections.value = typedMarketResult.storefront.sections.filter((section) =>
-          section.type === 'banner'
-            ? (section.items?.length ?? 0) > 0
-            : section.type === 'navigation'
-              ? (section.categories?.length ?? 0) > 0
-              : (section.plugins?.length ?? 0) > 0
-        )
+        // 处理 sections：将 fixed/random 中的插件替换为带安装状态的版本
+        storefrontSections.value = typedMarketResult.storefront.sections
+          .map((section) => {
+            if (
+              (section.type === 'fixed' || section.type === 'random') &&
+              Array.isArray(section.plugins)
+            ) {
+              return {
+                ...section,
+                plugins: section.plugins
+                  .map((p) => pMap.get(p.name))
+                  .filter((p): p is Plugin => !!p)
+              }
+            }
+            return section
+          })
+          .filter((section) =>
+            section.type === 'banner'
+              ? (section.items?.length ?? 0) > 0
+              : section.type === 'navigation'
+                ? (section.categories?.length ?? 0) > 0
+                : (section.plugins?.length ?? 0) > 0
+          )
       } else {
         storefrontSections.value = []
       }
@@ -378,10 +365,11 @@ function handleBannerClick(item: BannerItem): void {
 // 处理 ESC 按键 - 逐级返回
 function handleKeydown(e: KeyboardEvent): void {
   if (e.key === 'Escape') {
-    e.stopPropagation()
     if (isDetailVisible.value) {
+      e.stopPropagation()
       closePluginDetail()
     } else if (isCategoryDetailVisible.value) {
+      e.stopPropagation()
       closeCategoryDetail()
     }
   }
@@ -554,19 +542,24 @@ onUnmounted(() => {
 
     <!-- 分类详情覆盖面板 -->
     <Transition name="slide">
-      <CategoryDetail
+      <div
         v-if="isCategoryDetailVisible && selectedCategory"
-        :category="selectedCategory"
-        :layout="getCategoryLayout(selectedCategory.key)"
-        :installing-plugin="installingPlugin"
-        :plugin-map="pluginMap"
-        :can-upgrade="canUpgrade"
-        @back="closeCategoryDetail"
-        @click-plugin="openPluginDetail"
-        @open-plugin="handleOpenPlugin"
-        @download-plugin="downloadPlugin"
-        @upgrade-plugin="handleUpgradePlugin"
-      />
+        class="category-panel-container"
+        :class="{ 'shifted-left': isDetailVisible }"
+      >
+        <CategoryDetail
+          :category="selectedCategory"
+          :layout="getCategoryLayout(selectedCategory.key)"
+          :installing-plugin="installingPlugin"
+          :plugin-map="pluginMap"
+          :can-upgrade="canUpgrade"
+          @back="closeCategoryDetail"
+          @click-plugin="openPluginDetail"
+          @open-plugin="handleOpenPlugin"
+          @download-plugin="downloadPlugin"
+          @upgrade-plugin="handleUpgradePlugin"
+        />
+      </div>
     </Transition>
 
     <!-- 插件详情覆盖面板组件 -->
@@ -690,6 +683,19 @@ onUnmounted(() => {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-color);
+}
+
+/* 分类详情容器（支持左移动画） */
+.category-panel-container {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--bg-color);
+  transition: transform 0.2s ease-out;
+}
+
+.category-panel-container.shifted-left {
+  transform: translateX(-100%);
 }
 
 /* 分类导航网格 */

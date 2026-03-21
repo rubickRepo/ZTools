@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import { AdaptiveIcon } from '@/components'
-
-interface Plugin {
-  name: string
-  title: string
-  description: string
-  logo?: string
-  installed: boolean
-  localVersion?: string
-  version: string
-}
+import type { Plugin } from '../types'
 
 defineProps<{
   plugin: Plugin

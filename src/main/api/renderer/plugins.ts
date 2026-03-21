@@ -24,7 +24,16 @@ const PLUGIN_DIR = path.join(app.getPath('userData'), 'plugins')
 const PLUGIN_MARKET_STOREFRONT_CACHE_KEY = 'plugin-market-storefront'
 const PLUGIN_MARKET_STOREFRONT_FINGERPRINT_CACHE_KEY = 'plugin-market-storefront-fingerprint'
 
-type PluginMarketPlugin = Record<string, any>
+type PluginMarketPlugin = {
+  name: string
+  version: string
+  title?: string
+  description?: string
+  logo?: string
+  platform?: string[]
+  downloadUrl?: string
+  [key: string]: unknown
+}
 
 type PluginMarketBannerItem = {
   image: string
@@ -1038,18 +1047,12 @@ export class PluginsAPI {
           typeof layoutResponse.data === 'string'
             ? layoutResponse.data
             : String(layoutResponse.data || '')
-        const categoriesRaw =
+        const categories =
           typeof categoriesResponse.data === 'string'
-            ? categoriesResponse.data
-            : JSON.stringify(categoriesResponse.data || [])
+            ? JSON.parse(categoriesResponse.data)
+            : categoriesResponse.data || []
 
-        storefront = this.buildPluginMarketStorefront(
-          plugins,
-          layoutRaw,
-          typeof categoriesResponse.data === 'string'
-            ? JSON.parse(categoriesRaw)
-            : categoriesResponse.data
-        )
+        storefront = this.buildPluginMarketStorefront(plugins, layoutRaw, categories)
       } catch (error) {
         console.warn('[Plugins] 获取或解析 storefront 数据失败，降级为平铺列表:', error)
       }
@@ -1236,7 +1239,11 @@ export class PluginsAPI {
           (plugin) => plugin?.name && !usedPluginNames.has(plugin.name)
         )
         if (count > 0 && availablePlugins.length > 0) {
-          const shuffled = [...availablePlugins].sort(() => Math.random() - 0.5)
+          const shuffled = [...availablePlugins]
+          for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1))
+            ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+          }
           const randomPlugins = shuffled.slice(0, count)
           for (const plugin of randomPlugins) {
             usedPluginNames.add(plugin.name)

@@ -2,31 +2,7 @@
 import { computed } from 'vue'
 import { DetailPanel } from '@/components'
 import { PluginCard } from '../PluginCard'
-
-interface Plugin {
-  name: string
-  title: string
-  description: string
-  logo?: string
-  installed: boolean
-  localVersion?: string
-  version: string
-}
-
-interface CategoryInfo {
-  key: string
-  title: string
-  description?: string
-  icon?: string
-  plugins: Plugin[]
-}
-
-interface CategoryLayoutSection {
-  type: string
-  title?: string
-  count?: number
-  plugins?: string[]
-}
+import type { Plugin, CategoryInfo, CategoryLayoutSection } from '../types'
 
 const props = defineProps<{
   category: CategoryInfo
@@ -83,8 +59,11 @@ const resolvedSections = computed<ResolvedSection[]>(() => {
       }
     } else if (section.type === 'random') {
       const count = section.count || 4
-      const categoryPlugins = [...props.category.plugins]
-      const shuffled = categoryPlugins.sort(() => Math.random() - 0.5)
+      const shuffled = [...props.category.plugins]
+      for (let k = shuffled.length - 1; k > 0; k--) {
+        const j = Math.floor(Math.random() * (k + 1))
+        ;[shuffled[k], shuffled[j]] = [shuffled[j], shuffled[k]]
+      }
       sections.push({
         key: `random-${i}`,
         title,
