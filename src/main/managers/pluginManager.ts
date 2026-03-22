@@ -423,11 +423,6 @@ export class PluginManager {
     this.pluginView = cached.view
     this.mainWindow.contentView.addChildView(this.pluginView)
 
-    // 强制重绘：部分 Windows 系统 GPU 驱动下，重新挂载 WebContentsView 后合成层不会自动刷新导致白屏
-    if (!this.pluginView.webContents.isDestroyed()) {
-      this.pluginView.webContents.invalidate()
-    }
-
     // 恢复显示时关闭节流
     this.applyBackgroundThrottlingByPolicy(this.pluginView, pluginPath, false)
 
@@ -476,7 +471,12 @@ export class PluginManager {
       pluginPath,
       featureCode
     })
-    return this.processPluginMode(pluginPath, featureCode, this.pluginView, assembly, mode)
+    await this.processPluginMode(pluginPath, featureCode, this.pluginView, assembly, mode)
+
+    // 修复部分 Windows 系统重新挂载 WebContentsView 后白屏问题：
+    // removeChildView/addChildView 后某些 GPU 驱动下 compositor 不重绘 surface，
+    // 通过 bounds 微调 (+1px/-1px) 强制 compositor 重新合成
+    this.forceRepaintView(cached.view)
   }
 
   /**
@@ -1034,6 +1034,18 @@ export class PluginManager {
       console.error('[Plugin] 切换开发者工具失败:', error)
       return false
     }
+  }
+
+  /**
+   * 强制重绘 WebContentsView（修复部分 Windows 系统白屏问题）
+   * 通过 bounds 微调迫使 Chromium compositor 重新合成 surface
+   */
+  private forceRepaintView(view: WebContentsView): void {
+    if (view.webContents.isDestroyed()) return
+    const bounds = view.getBounds()
+    if (bounds.height <= 0) return
+    view.setBounds({ ...bounds, height: bounds.height + 1 })
+    view.setBounds(bounds)
   }
 
   // 设置插件视图高度
