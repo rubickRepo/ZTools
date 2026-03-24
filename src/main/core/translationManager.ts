@@ -47,6 +47,18 @@ const RESOURCE_FILES = [
   }
 ]
 
+const WINDOWS_FILE_READ_NEEDLE = 'const buffer = await readFile(url.pathname);'
+const WINDOWS_FILE_READ_PATCH = [
+  "const {fileURLToPath} = require(/* webpackIgnore: true */ 'node:url');",
+  '                const buffer = await readFile(fileURLToPath(url));'
+].join('\n')
+
+const WINDOWS_LOCATION_NEEDLE = 'return new URL(`file://${__filename}`);'
+const WINDOWS_LOCATION_PATCH = [
+  "const {pathToFileURL} = require(/* webpackIgnore: true */ 'node:url');",
+  '            return pathToFileURL(__filename);'
+].join('\n')
+
 type TranslationStatus = 'idle' | 'downloading' | 'initializing' | 'ready' | 'error'
 
 /**
@@ -158,6 +170,7 @@ class TranslationManager {
         console.log('[Translation] 翻译资源下载完成')
       }
 
+      this.patchWorkerScriptIfNeeded()
       this.status = 'initializing'
       await this.createWorker()
       await this.loadModel()
@@ -264,6 +277,41 @@ class TranslationManager {
 
     // 初始化 WASM 模块
     await this.sendWorkerMessage('initialize', [{ cacheSize: 0 }])
+  }
+
+  /**
+   * 上游 translator-worker.js 在 Windows 的 Node worker 环境中会错误处理 file:// URL，
+   * 导致 wasm 路径被解析成 C:\C:\...。这里在启动前对下载后的脚本做一次就地修补。
+   */
+  private patchWorkerScriptIfNeeded(): void {
+    const workerPath = path.join(this.translationDir, 'translator-worker.js')
+    if (!fs.existsSync(workerPath)) return
+
+    const originalContent = fs.readFileSync(workerPath, 'utf-8')
+    const patchedContent = this.patchBergamotWorkerScript(originalContent)
+
+    if (patchedContent !== originalContent) {
+      fs.writeFileSync(workerPath, patchedContent, 'utf-8')
+      console.log('[Translation] 已修补 Bergamot worker 的本地文件 URL 兼容性')
+    }
+  }
+
+  /**
+   * 将上游脚本中依赖 URL.pathname 和手写 file:// 的实现，
+   * 替换为 Node 官方的 fileURLToPath/pathToFileURL，确保 Windows 盘符路径正确。
+   */
+  private patchBergamotWorkerScript(scriptContent: string): string {
+    let patchedContent = scriptContent
+
+    if (patchedContent.includes(WINDOWS_FILE_READ_NEEDLE)) {
+      patchedContent = patchedContent.replace(WINDOWS_FILE_READ_NEEDLE, WINDOWS_FILE_READ_PATCH)
+    }
+
+    if (patchedContent.includes(WINDOWS_LOCATION_NEEDLE)) {
+      patchedContent = patchedContent.replace(WINDOWS_LOCATION_NEEDLE, WINDOWS_LOCATION_PATCH)
+    }
+
+    return patchedContent
   }
 
   private async loadModel(): Promise<void> {
