@@ -63,7 +63,8 @@ export async function executeSystemCommand(
       if (platform === 'darwin') {
         cmd = 'osascript -e "tell application \\"System Events\\" to sleep"'
       } else if (platform === 'win32') {
-        cmd = 'rundll32.exe powrprof.dll,SetSuspendState 0,1,0'
+        ctx.mainWindow?.hide()
+        cmd = `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::SetSuspendState('Suspend', $false, $false)"`
       }
       break
 
