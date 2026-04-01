@@ -260,7 +260,9 @@ declare global {
           plugins: any[]
         }>
         // 保存 alias 映射。主进程会负责归一化、持久化，并触发主窗口的指令缓存刷新。
-        updateCommandAliases: (aliases: Record<string, Array<{ alias: string; icon?: string }>>) => Promise<{ success: boolean }>
+        updateCommandAliases: (
+          aliases: Record<string, Array<{ alias: string; icon?: string }>>
+        ) => Promise<{ success: boolean }>
 
         // 本地启动管理
         localShortcuts: {

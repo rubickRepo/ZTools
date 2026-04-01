@@ -240,7 +240,9 @@ function getAliasDisplayIcon(row: AliasRow): string | undefined {
   return row.icon || row.target?.icon
 }
 
-function resolveAliasTarget(target: ShortcutsSettingAliasDraftTarget): ShortcutsSettingAliasCommandOption {
+function resolveAliasTarget(
+  target: ShortcutsSettingAliasDraftTarget
+): ShortcutsSettingAliasCommandOption {
   return (
     // 优先复用当前最新的目标指令数据；若目标已经不在候选列表中，则退回路由里带过来的草稿信息
     aliasTargetMap.value.get(target.commandId) || {
@@ -865,13 +867,6 @@ useJumpFunction<ShortcutsSettingJumpFunction>(async (state) => {
         <!-- alias 列表区 -->
         <div v-if="activeTab === 'alias'" class="shortcut-list">
           <div v-if="filteredAliasRows.length > 0" class="alias-table">
-            <div class="alias-table-header card">
-              <div class="alias-icon-cell alias-header-cell">图标</div>
-              <div class="alias-header-cell">自定义别名</div>
-              <div class="alias-header-cell">目标</div>
-              <div class="alias-actions-cell alias-header-cell"></div>
-            </div>
-
             <div v-for="row in filteredAliasRows" :key="row.id" class="card alias-table-row">
               <div class="alias-icon-cell">
                 <AdaptiveIcon

@@ -79,10 +79,6 @@ export interface Command {
   name: string
   path: string // 纯路径（应用路径 或 插件根目录路径）
   icon?: string
-  // aliases 仅用于 Fuse 搜索字段，命中后仍复用原始指令对象
-  aliases?: string[]
-  // aliasEntries 保留 alias 与自定义图标的完整映射，用于命中 alias 时切换展示图标
-  aliasEntries?: Array<{ alias: string; icon?: string }>
   pinyin?: string
   pinyinAbbr?: string
   acronym?: string // 英文首字母缩写（用于搜索）
@@ -240,31 +236,34 @@ export const useCommandDataStore = defineStore('commandData', () => {
     }
   }
 
-  function getAliasEntryIcon(command: Command, alias: string | undefined): string | undefined {
-    if (!alias) {
-      return command.icon
-    }
-
-    // 命中 alias 时优先使用该 alias 对应的自定义图标，没有配置时回退到原指令图标
-    return command.aliasEntries?.find((entry) => entry.alias === alias)?.icon || command.icon
-  }
-
-  function enrichPluginTextCommand(command: Command, aliasesMap: CommandAliasStore): Command {
+  function expandPluginTextCommandAliases(
+    command: Command,
+    aliasesMap: CommandAliasStore
+  ): Command[] {
     // alias 只作用于插件的文本指令；匹配指令和直接启动项保持原始行为
     if (command.type !== 'plugin' || command.cmdType !== 'text') {
-      return command
+      return [command]
     }
 
     const aliasEntries = aliasesMap[getCommandId(command)]
     if (!aliasEntries?.length) {
-      return command
+      return [command]
     }
 
-    return {
+    // 为每个别名生成一个独立的指令（与应用本地化别名处理方式一致）
+    const aliasCommands: Command[] = aliasEntries.map((entry) => ({
       ...command,
-      aliases: aliasEntries.map((entry) => entry.alias),
-      aliasEntries
-    }
+      name: entry.alias,
+      icon: entry.icon || command.icon,
+      pinyin: pinyin(entry.alias, { toneType: 'none', type: 'string' })
+        .replace(/\s+/g, '')
+        .toLowerCase(),
+      pinyinAbbr: pinyin(entry.alias, { pattern: 'first', toneType: 'none', type: 'string' })
+        .replace(/\s+/g, '')
+        .toLowerCase()
+    }))
+
+    return [command, ...aliasCommands]
   }
 
   // 检查指令是否被禁用
@@ -536,8 +535,7 @@ export const useCommandDataStore = defineStore('commandData', () => {
         return result
       })
 
-      // alias 会在构建插件文本指令阶段注入到原始 command 上，
-      // 这样 Fuse 建索引时即可直接搜索 alias，而不需要为 alias 额外生成独立指令
+      // 处理插件：每个 cmd 转换为一个独立指令，插件文本指令的别名会展开为额外的独立指令
       // 处理插件：每个 cmd 转换为一个独立指令
       const pluginItems: Command[] = [] // 普通插件指令
       const regexItems: Command[] = [] // 正则匹配指令
@@ -648,9 +646,9 @@ export const useCommandDataStore = defineStore('commandData', () => {
                       .toLowerCase()
                   })
                 } else {
-                  // 功能指令（文本类型）
+                  // 功能指令（文本类型）：展开为原指令 + 每个别名周独立指令
                   pluginItems.push(
-                    enrichPluginTextCommand(
+                    ...expandPluginTextCommandAliases(
                       {
                         name: cmdName,
                         path: plugin.path,
@@ -738,11 +736,9 @@ export const useCommandDataStore = defineStore('commandData', () => {
       )
 
       // 初始化 Fuse.js 搜索引擎
-      // alias 权重略低于 name，既允许用户通过别名命中，也避免别名完全压过原始指令名
       fuse.value = new Fuse(commands.value, {
         keys: [
           { name: 'name', weight: 2 }, // 名称权重最高
-          { name: 'aliases', weight: 1.8 }, // 指令别名略低于名称
           { name: 'pinyin', weight: 1.5 }, // 拼音
           { name: 'pinyinAbbr', weight: 1 }, // 拼音首字母
           { name: 'acronym', weight: 1.5 } // 英文首字母缩写
@@ -802,7 +798,6 @@ export const useCommandDataStore = defineStore('commandData', () => {
         ? new Fuse(commandList, {
             keys: [
               { name: 'name', weight: 2 },
-              { name: 'aliases', weight: 1.8 },
               { name: 'pinyin', weight: 1.5 },
               { name: 'pinyinAbbr', weight: 1 },
               { name: 'acronym', weight: 1.5 }
@@ -816,38 +811,33 @@ export const useCommandDataStore = defineStore('commandData', () => {
 
       const fuseResults = searchFuse.search(query)
       const scoredMatches: SearchResultScoreMeta[] = fuseResults.map((r) => {
-          const aliasMatch = r.matches?.find((match) => match.key === 'aliases') as MatchInfo | undefined
-          const displayMatches = ((r.matches || []).filter((match) => match.key !== 'aliases') || []) as MatchInfo[]
-          // alias 命中时，排序分数基于命中的 alias 文本计算；界面展示仍沿用原始指令对象
-          const scoreText = aliasMatch ? aliasMatch.value || r.item.name : r.item.name
-          const scoreMatches = aliasMatch ? [aliasMatch] : displayMatches
+        const displayMatches = (r.matches || []) as MatchInfo[]
 
-          // 检测匹配类型（用于前端高亮算法选择）
-          let matchType: 'acronym' | 'name' | 'pinyin' | 'pinyinAbbr' | undefined
-          if ((r.matches || []).length > 0) {
-            // 优先级：acronym > name > aliases > pinyin > pinyinAbbr
-            if ((r.matches || []).some((m) => m.key === 'acronym')) {
-              matchType = 'acronym'
-            } else if ((r.matches || []).some((m) => m.key === 'name' || m.key === 'aliases')) {
-              matchType = 'name'
-            } else if ((r.matches || []).some((m) => m.key === 'pinyin')) {
-              matchType = 'pinyin'
-            } else if ((r.matches || []).some((m) => m.key === 'pinyinAbbr')) {
-              matchType = 'pinyinAbbr'
-            }
+        // 检测匹配类型（用于前端高亮算法选择）
+        let matchType: 'acronym' | 'name' | 'pinyin' | 'pinyinAbbr' | undefined
+        if (displayMatches.length > 0) {
+          // 优先级：acronym > name > pinyin > pinyinAbbr
+          if (displayMatches.some((m) => m.key === 'acronym')) {
+            matchType = 'acronym'
+          } else if (displayMatches.some((m) => m.key === 'name')) {
+            matchType = 'name'
+          } else if (displayMatches.some((m) => m.key === 'pinyin')) {
+            matchType = 'pinyin'
+          } else if (displayMatches.some((m) => m.key === 'pinyinAbbr')) {
+            matchType = 'pinyinAbbr'
           }
+        }
 
-          return {
-            result: {
-              ...r.item,
-              icon: aliasMatch ? getAliasEntryIcon(r.item, aliasMatch.value) : r.item.icon,
-              matches: displayMatches,
-              matchType
-            },
-            scoreText,
-            scoreMatches
-          }
-        })
+        return {
+          result: {
+            ...r.item,
+            matches: displayMatches,
+            matchType
+          },
+          scoreText: r.item.name,
+          scoreMatches: displayMatches
+        }
+      })
       bestMatches = scoredMatches
         .sort((a, b) => {
           // 自定义排序：优先连续匹配，系统应用权重略高
@@ -927,8 +917,6 @@ export const useCommandDataStore = defineStore('commandData', () => {
     }
 
     // 应用特殊指令配置（确保图标等属性正确）
-    // bestMatches 中 alias 命中时已经在 Fuse 结果阶段切换过 icon；
-    // 这里不要再次应用特殊配置，否则会把 alias 自定义图标覆盖回原图标。
     const processedBestMatches = bestMatches.filter((cmd) => !isCommandDisabled(cmd))
     const processedRegexMatches = regexMatches
       .filter((cmd) => !isCommandDisabled(cmd))

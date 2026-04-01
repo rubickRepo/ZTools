@@ -21,7 +21,11 @@ import windowAPI from '../renderer/window.js'
 import pluginToolsAPI from './tools'
 import databaseAPI from '../shared/database'
 import updaterAPI from '../updater.js'
-import { COMMAND_ALIASES_KEY, normalizeCommandAliases, type CommandAliasStore } from '@shared/commandShared'
+import {
+  COMMAND_ALIASES_KEY,
+  normalizeCommandAliases,
+  type CommandAliasStore
+} from '@shared/commandShared'
 
 /**
  * 权限错误类
@@ -159,56 +163,52 @@ export class InternalPluginAPI {
       return result
     })
 
-    ipcMain.handle(
-      'internal:update-command-aliases',
-      async (event, aliases: CommandAliasStore) => {
-        if (!requireInternalPlugin(this.pluginManager, event)) {
-          throw new PermissionDeniedError('internal:update-command-aliases')
-        }
-
-        const inputCommandCount = Object.keys(aliases || {}).length
-        const inputAliasCount = Object.values(aliases || {}).reduce(
-          (count, entries) => count + (Array.isArray(entries) ? entries.length : 0),
-          0
-        )
-        console.log('[Internal] 收到更新指令别名请求:', {
-          commandCount: inputCommandCount,
-          aliasCount: inputAliasCount
-        })
-
-        // alias 保存链路：归一化 -> 持久化 -> 失效 commands cache -> 通知主窗口刷新搜索索引。
-        const normalizedAliases = normalizeCommandAliases(aliases)
-        const normalizedCommandCount = Object.keys(normalizedAliases).length
-        const normalizedAliasEntries = Object.values(normalizedAliases).flat()
-        console.log('[Internal] 指令别名归一化完成:', {
-          commandCount: normalizedCommandCount,
-          aliasCount: normalizedAliasEntries.length,
-          aliasWithIconCount: normalizedAliasEntries.filter((entry) => Boolean(entry.icon)).length
-        })
-
-        try {
-          const saveResult = databaseAPI.dbPut(COMMAND_ALIASES_KEY, normalizedAliases)
-          if (!saveResult?.ok) {
-            console.error('[Internal] 指令别名写入数据库失败:', saveResult)
-            throw new Error(saveResult?.message || '指令别名写入数据库失败')
-          }
-
-          console.log('[Internal] 指令别名已写入数据库:', {
-            key: COMMAND_ALIASES_KEY,
-            commandCount: normalizedCommandCount,
-            aliasCount: normalizedAliasEntries.length
-          })
-
-          ;(commandsAPI as any).invalidateCommandsCache(true)
-          console.log('[Internal] 指令缓存已失效并通知主窗口刷新 alias 搜索索引')
-
-          return { success: true }
-        } catch (error) {
-          console.error('[Internal] 更新指令别名失败:', error)
-          throw error
-        }
+    ipcMain.handle('internal:update-command-aliases', async (event, aliases: CommandAliasStore) => {
+      if (!requireInternalPlugin(this.pluginManager, event)) {
+        throw new PermissionDeniedError('internal:update-command-aliases')
       }
-    )
+
+      const inputCommandCount = Object.keys(aliases || {}).length
+      const inputAliasCount = Object.values(aliases || {}).reduce(
+        (count, entries) => count + (Array.isArray(entries) ? entries.length : 0),
+        0
+      )
+      console.log('[Internal] 收到更新指令别名请求:', {
+        commandCount: inputCommandCount,
+        aliasCount: inputAliasCount
+      })
+
+      // alias 保存链路：归一化 -> 持久化 -> 失效 commands cache -> 通知主窗口刷新搜索索引。
+      const normalizedAliases = normalizeCommandAliases(aliases)
+      const normalizedCommandCount = Object.keys(normalizedAliases).length
+      const normalizedAliasEntries = Object.values(normalizedAliases).flat()
+      console.log('[Internal] 指令别名归一化完成:', {
+        commandCount: normalizedCommandCount,
+        aliasCount: normalizedAliasEntries.length,
+        aliasWithIconCount: normalizedAliasEntries.filter((entry) => Boolean(entry.icon)).length
+      })
+
+      try {
+        const saveResult = databaseAPI.dbPut(COMMAND_ALIASES_KEY, normalizedAliases)
+        if (!saveResult?.ok) {
+          console.error('[Internal] 指令别名写入数据库失败:', saveResult)
+          throw new Error(saveResult?.message || '指令别名写入数据库失败')
+        }
+
+        console.log('[Internal] 指令别名已写入数据库:', {
+          key: COMMAND_ALIASES_KEY,
+          commandCount: normalizedCommandCount,
+          aliasCount: normalizedAliasEntries.length
+        })
+        ;(commandsAPI as any).invalidateCommandsCache(true)
+        console.log('[Internal] 指令缓存已失效并通知主窗口刷新 alias 搜索索引')
+
+        return { success: true }
+      } catch (error) {
+        console.error('[Internal] 更新指令别名失败:', error)
+        throw error
+      }
+    })
 
     // ==================== 插件管理 API ====================
     ipcMain.handle('internal:get-plugins', async (event) => {

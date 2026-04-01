@@ -1510,7 +1510,6 @@ onMounted(async () => {
   color: var(--purple-color);
 }
 
-
 .feature-command-row {
   display: inline-flex;
   align-items: center;
