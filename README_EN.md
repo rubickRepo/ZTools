@@ -91,6 +91,9 @@ pnpm dev
 # Build
 pnpm build:mac    # macOS
 pnpm build:win    # Windows
+pnpm build:linux  # Linux (Default Arch)
+pnpm build:linux:x64 # Linux (amd64/x64)
+pnpm build:linux:arm64 # Linux (arm64)
 ```
 
 ### Usage
@@ -313,6 +316,9 @@ pnpm lint               # ESLint check
 pnpm build              # Compile source code only
 pnpm build:mac          # Package macOS app
 pnpm build:win          # Package Windows app
+pnpm build:linux        # Package Linux app (Default Arch)
+pnpm build:linux:x64    # Package Linux app (amd64/x64)
+pnpm build:linux:arm64  # Package Linux app (arm64)
 pnpm build:unpack       # Package without installer (for debugging)
 ```
 

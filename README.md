@@ -91,6 +91,9 @@ pnpm dev
 # 构建
 pnpm build:mac    # macOS
 pnpm build:win    # Windows
+pnpm build:linux  # Linux (当前主机架构)
+pnpm build:linux:x64 # Linux (按 amd64/x64 架构打包)
+pnpm build:linux:arm64 # Linux (按 arm64 架构打包)
 ```
 
 ### 使用
@@ -325,6 +328,9 @@ pnpm lint               # ESLint 检查
 pnpm build              # 仅编译源码
 pnpm build:mac          # 打包 macOS 应用
 pnpm build:win          # 打包 Windows 应用
+pnpm build:linux        # 打包 Linux 应用 (当前主机架构)
+pnpm build:linux:x64    # 打包 Linux 应用 (amd64/x64)
+pnpm build:linux:arm64  # 打包 Linux 应用 (arm64)
 pnpm build:unpack       # 打包但不生成安装包（调试用）
 ```
 
