@@ -1,5 +1,4 @@
-import { BrowserWindow, clipboard, ipcMain, screen } from 'electron'
-import os from 'os'
+import { BrowserWindow, ipcMain, screen } from 'electron'
 import path from 'path'
 import { is } from '@electron-toolkit/utils'
 import { MouseMonitor, WindowManager, type MouseMonitorResult } from './native/index.js'
@@ -7,8 +6,7 @@ import { launchApp } from './commandLauncher/index.js'
 import databaseAPI from '../api/shared/database.js'
 import pluginsAPI from '../api/renderer/plugins.js'
 import windowManager from '../managers/windowManager.js'
-import clipboardManager from '../managers/clipboardManager.js'
-import { readClipboardFiles } from '../utils/clipboardFiles.js'
+import clipboardManager, { type LastCopiedContent } from '../managers/clipboardManager.js'
 import { applyWindowMaterial, getDefaultWindowMaterial } from '../utils/windowUtils.js'
 import translationManager from './translationManager.js'
 
@@ -16,8 +14,8 @@ import translationManager from './translationManager.js'
 const SUPER_PANEL_WIDTH = 250
 const SUPER_PANEL_HEIGHT = 400
 
-// 模拟复制后等待剪贴板更新的时间
-const CLIPBOARD_WAIT_MS = 50
+// 模拟复制后等待剪贴板监听更新的时间窗口
+const CLIPBOARD_WAIT_MS = 180
 
 // 剪贴板内容类型
 interface ClipboardContent {
@@ -190,41 +188,28 @@ class SuperPanelManager {
   } | null = null
 
   /**
-   * 读取剪贴板内容（支持文件、图片、文字三种类型）
+   * 将剪贴板管理器返回的数据转换为超级面板使用的结构
    */
-  private readClipboardContent(): ClipboardContent | null {
-    try {
-      // 优先检测文件
-      if (os.platform() === 'darwin' || os.platform() === 'win32') {
-        try {
-          const files = readClipboardFiles()
-          if (Array.isArray(files) && files.length > 0) {
-            return { type: 'file', files }
-          }
-        } catch (error) {
-          console.error('[SuperPanel] 读取文件剪贴板失败:', error)
-        }
-      }
-
-      // 检测图片
-      const image = clipboard.readImage()
-      if (!image.isEmpty()) {
-        const buffer = image.toPNG()
-        const base64 = `data:image/png;base64,${buffer.toString('base64')}`
-        return { type: 'image', image: base64 }
-      }
-
-      // 检测文本
-      const text = clipboard.readText()
-      if (text && text.trim() !== '') {
-        return { type: 'text', text }
-      }
-
-      return null
-    } catch (error) {
-      console.error('[SuperPanel] 读取剪贴板失败:', error)
+  private convertLastCopiedContent(content: LastCopiedContent | null): ClipboardContent | null {
+    if (!content) {
       return null
     }
+
+    if (content.type === 'text') {
+      return typeof content.data === 'string' && content.data.trim() !== ''
+        ? { type: 'text', text: content.data }
+        : null
+    }
+
+    if (content.type === 'image') {
+      return typeof content.data === 'string' && content.data
+        ? { type: 'image', image: content.data }
+        : null
+    }
+
+    return Array.isArray(content.data) && content.data.length > 0
+      ? { type: 'file', files: content.data }
+      : null
   }
 
   /**
@@ -261,47 +246,27 @@ class SuperPanelManager {
 
   private async onMouseTriggerAsync(cursorPoint: { x: number; y: number }): Promise<void> {
     try {
-      // 2. 记录当前剪贴板内容快照（用于对比是否有新内容）
-      const oldContent = this.readClipboardContent()
-      const oldClipboardText = clipboard.readText()
+      const lastSequence = clipboardManager.getLastCopiedSequence()
 
-      // 3. 等待鼠标按键释放
-      // await new Promise((resolve) => setTimeout(resolve, 100))
-
-      // 4. 模拟复制（Cmd+C on macOS, Ctrl+C on Windows）
+      // 2. 模拟复制（Cmd+C on macOS, Ctrl+C on Windows）
       const modifier = process.platform === 'darwin' ? 'meta' : 'ctrl'
       WindowManager.simulateKeyboardTap('c', modifier)
 
-      // 5. 等待剪贴板更新
-      await new Promise((resolve) => setTimeout(resolve, CLIPBOARD_WAIT_MS))
+      // 3. 等待剪贴板监听捕获本次复制事件
+      const lastCopiedContent = await clipboardManager.getLastCopiedContent(
+        CLIPBOARD_WAIT_MS,
+        lastSequence
+      )
+      const newContent = this.convertLastCopiedContent(lastCopiedContent)
+      const hasNewContent = !!newContent
 
-      // 6. 读取新的剪贴板内容（支持文件/图片/文字）
-      const newContent = this.readClipboardContent()
-      const newClipboardText = clipboard.readText()
-
-      // 7. 判断是否有新的复制内容
-      let hasNewContent = false
-      if (newContent) {
-        if (newContent.type === 'text') {
-          hasNewContent = newClipboardText !== oldClipboardText && newClipboardText.trim() !== ''
-        } else if (newContent.type === 'file') {
-          // 文件：对比文件路径列表
-          const oldPaths = oldContent?.files?.map((f) => f.path).join('|') || ''
-          const newPaths = newContent.files?.map((f) => f.path).join('|') || ''
-          hasNewContent = newPaths !== oldPaths && newPaths !== ''
-        } else if (newContent.type === 'image') {
-          // 图片：只要有图片就认为有新内容（无法精确对比）
-          hasNewContent = !oldContent || oldContent.type !== 'image'
-        }
-      }
-
-      // 8. 保存当前剪贴板内容
+      // 4. 保存当前剪贴板内容
       this.currentClipboardContent = hasNewContent ? newContent : null
 
-      // 9. 显示超级面板窗口
+      // 5. 显示超级面板窗口
       this.showWindow(cursorPoint.x, cursorPoint.y)
 
-      // 10. 根据剪贴板内容决定模式
+      // 6. 根据剪贴板内容决定模式
       if (hasNewContent && newContent) {
         // 有新内容：发送搜索请求到主窗口（携带剪贴板类型和数据）
         this.requestSearch(newContent)

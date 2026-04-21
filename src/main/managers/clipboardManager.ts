@@ -19,10 +19,11 @@ import ClipboardMonitor, { WindowMonitor, WindowManager } from '../core/native'
 // 剪贴板类型
 type ClipboardType = 'text' | 'image' | 'file'
 
-type LastCopiedContent = {
+export type LastCopiedContent = {
   type: 'text' | 'image' | 'file'
   data: string | FileItem[]
   timestamp: number
+  sequence: number
 }
 
 // 文件项
@@ -94,6 +95,7 @@ class ClipboardManager {
 
   // 记录最后一次复制的内容（统一管理）
   private lastCopiedContent: LastCopiedContent | null = null
+  private lastCopiedSequence = 0
 
   // 临时取消剪贴板监听的计时器（防止 paste API 写入剪贴板时自我触发）
   private cancelWatchTimeout: ReturnType<typeof setTimeout> | null = null
@@ -262,7 +264,8 @@ class ClipboardManager {
       this.lastCopiedContent = {
         type: 'file',
         data: files, // 存储完整的 FileItem 对象
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        sequence: ++this.lastCopiedSequence
       }
 
       // 生成 hash（基于所有文件路径）
@@ -308,7 +311,8 @@ class ClipboardManager {
       this.lastCopiedContent = {
         type: 'image',
         data: base64,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        sequence: ++this.lastCopiedSequence
       }
 
       // 检查图片大小
@@ -366,7 +370,8 @@ class ClipboardManager {
     this.lastCopiedContent = {
       type: 'text',
       data: text,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      sequence: ++this.lastCopiedSequence
     }
 
     return {
@@ -792,6 +797,11 @@ class ClipboardManager {
     }
   }
 
+  // 获取最后一次复制内容的序号
+  public getLastCopiedSequence(): number {
+    return this.lastCopiedContent?.sequence ?? 0
+  }
+
   // 获取最后一次复制的文本（在指定时间内）- 兼容旧 API
   public async getLastCopiedText(timeLimit: number): Promise<string | null> {
     const content = await this.getLastCopiedContent(timeLimit)
@@ -806,14 +816,15 @@ class ClipboardManager {
 
   // 获取最后复制的内容（统一接口）
   public async getLastCopiedContent(
-    timeLimit?: number // 可选：时间限制（毫秒），不传或传 0 表示无时间限制
+    timeLimit?: number, // 可选：时间限制（毫秒），不传或传 0 表示无时间限制
+    minSequence?: number // 可选：仅接受晚于该序号的新复制内容
   ): Promise<LastCopiedContent | null> {
     const cachedContent = this.getValidLastCopiedContent(timeLimit)
-    if (cachedContent) {
+    if (cachedContent && (!minSequence || cachedContent.sequence > minSequence)) {
       return cachedContent
     }
 
-    const initialTimestamp = this.lastCopiedContent?.timestamp ?? 0
+    const initialSequence = Math.max(this.lastCopiedContent?.sequence ?? 0, minSequence ?? 0)
     const waitMs =
       timeLimit && timeLimit > 0
         ? Math.min(timeLimit, CLIPBOARD_READY_WAIT_MS)
@@ -824,7 +835,7 @@ class ClipboardManager {
       await sleep(CLIPBOARD_RETRY_INTERVAL_MS)
 
       const latestContent = this.getValidLastCopiedContent(timeLimit)
-      if (latestContent && latestContent.timestamp !== initialTimestamp) {
+      if (latestContent && latestContent.sequence > initialSequence) {
         return latestContent
       }
     }
