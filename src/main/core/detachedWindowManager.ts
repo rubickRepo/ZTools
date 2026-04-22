@@ -173,13 +173,25 @@ class DetachedWindowManager {
       // Windows 系统配置（与主窗口保持一致）
       else if (isWindows) {
         windowConfig.backgroundColor = '#00000000' // 完全透明，让 Mica 材质显示
+        // 设置插件窗口独立图标
+        if (options.logo) {
+          try {
+            windowConfig.icon = options.logo.startsWith('file:///')
+              ? options.logo.slice('file:///'.length)
+              : options.logo
+          } catch (error) {
+            console.warn('[DetachedWindow] 设置窗口图标失败:', error)
+          }
+        }
       }
-
       const win = new BrowserWindow(windowConfig)
-
       // Windows 11 应用窗口材质（与主窗口保持一致）
       if (isWindows) {
         this.applyWindowMaterial(win)
+        // 设置插件窗口ID，避免任务栏窗口合并
+        win.setAppDetails({
+          appId: 'ZTools.' + pluginName
+        })
       }
 
       // 窗口直接加载标题栏 HTML
