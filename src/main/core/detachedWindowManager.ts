@@ -176,8 +176,8 @@ class DetachedWindowManager {
         // 设置插件窗口独立图标
         if (options.logo) {
           try {
-            windowConfig.icon = options.logo.startsWith('file:///')
-              ? options.logo.slice('file:///'.length)
+            windowConfig.icon = options.logo.startsWith('file:')
+              ? fileURLToPath(options.logo)
               : options.logo
           } catch (error) {
             console.warn('[DetachedWindow] 设置窗口图标失败:', error)
